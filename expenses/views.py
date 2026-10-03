@@ -22,6 +22,11 @@ def register_view(request):
         form = UserCreationForm()
     return render(request, 'expenses/register.html', {'form': form})
 
+def landing_view(request):
+    # If the user is authenticated, they can still view it or we can pass a flag.
+    # The template will handle the logic using `request.user.is_authenticated`.
+    return render(request, 'expenses/landing.html')
+
 @login_required
 def dashboard_view(request):
     user = request.user
