@@ -33,3 +33,23 @@ class Income(models.Model):
 
     def __str__(self):
         return f"{self.source} - {self.amount}"
+
+class SpendingExperiment(models.Model):
+    STATUS_CHOICES = [
+        ('ACTIVE', 'Active'),
+        ('COMPLETED', 'Completed'),
+        ('CANCELLED', 'Cancelled'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    category = models.CharField(max_length=50, choices=Expense.CATEGORY_CHOICES)
+    baseline_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    target_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    start_date = models.DateField()
+    end_date = models.DateField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='ACTIVE')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.category} Experiment ({self.status})"
+

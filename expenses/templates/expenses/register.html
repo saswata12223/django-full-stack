@@ -1,21 +1,357 @@
-{% extends 'expenses/base.html' %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create account - DhanTrack</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+        body {
+            background-color: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        /* Navbar */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 40px;
+            background-color: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: #0f172a;
+            font-weight: 600;
+            font-size: 20px;
+        }
+        .navbar-brand svg {
+            margin-right: 12px;
+        }
+        .navbar-links a {
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            margin-left: 24px;
+        }
+        .nav-login {
+            color: #475569;
+        }
+        .nav-register {
+            color: #2563eb;
+        }
+        
+        /* Main Container */
+        .main-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+        
+        .login-card {
+            background-color: #ffffff;
+            width: 100%;
+            max-width: 440px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            border: 1px solid #e2e8f0;
+            padding: 40px;
+        }
+        
+        h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 8px;
+        }
+        
+        .subtitle {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 32px;
+            line-height: 1.5;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .label-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 8px;
+        }
 
-{% block content %}
-<div class="row justify-content-center mt-5">
-    <div class="col-md-6">
-        <div class="card shadow-sm">
-            <div class="card-header bg-white">
-                <h4 class="mb-0 text-center">Register</h4>
-            </div>
-            <div class="card-body p-4">
-                <form method="post">
-                    {% csrf_token %}
-                    {{ form.as_p }}
-                    <button type="submit" class="btn btn-success w-100 mt-3">Register</button>
-                </form>
-                <p class="mt-4 text-center">Already have an account? <a href="{% url 'login' %}">Login here</a></p>
-            </div>
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #334155;
+        }
+
+        .hint {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+        
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            height: 44px;
+            padding: 0 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #0f172a;
+            transition: all 0.2s;
+            outline: none;
+        }
+        
+        input[type="text"]:focus, input[type="password"]:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        
+        input::placeholder {
+            color: #94a3b8;
+        }
+        
+        .password-icon {
+            position: absolute;
+            right: 12px;
+            top: 38px;
+            cursor: pointer;
+        }
+        
+        .password-requirements {
+            margin-bottom: 24px;
+        }
+        
+        .req-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 12px;
+        }
+        
+        .req-item {
+            display: flex;
+            align-items: center;
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 8px;
+        }
+        
+        .req-circle {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 1px solid #cbd5e1;
+            margin-right: 8px;
+            background: transparent;
+        }
+
+        .btn-submit {
+            width: 100%;
+            height: 44px;
+            background-color: #2563eb;
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 8px;
+        }
+        
+        .btn-submit:hover {
+            background-color: #1d4ed8;
+        }
+        
+        .register-link {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 14px;
+            color: #64748b;
+        }
+        
+        .register-link a {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        /* Footer */
+        .footer {
+            padding: 24px;
+            text-align: center;
+            color: #94a3b8;
+            font-size: 12px;
+        }
+        
+        .footer span {
+            margin: 0 8px;
+        }
+        
+        .error-message {
+            background-color: #fee2e2;
+            color: #b91c1c;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-bottom: 20px;
+            border: 1px solid #fca5a5;
+        }
+        .error-message p {
+            margin-bottom: 4px;
+        }
+        .error-message p:last-child {
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <div class="navbar">
+        <a href="{% url 'dashboard' %}" class="navbar-brand">
+            <img src="{% static 'expenses/images/dhan_track_logo.png' %}" alt="DhanTrack Logo" height="48" style="margin-right: 12px; border-radius: 6px;">
+            <span style="font-size: 28px; font-weight: 700;">DhanTrack</span>
+        </a>
+        <div class="navbar-links">
+            <a href="{% url 'login' %}" class="nav-login">Login</a>
+            <a href="{% url 'register' %}" class="nav-register">Register</a>
         </div>
     </div>
-</div>
-{% endblock %}
+
+    <!-- Main Content -->
+    <div class="main-container">
+        <div class="login-card">
+            <h1>Create account</h1>
+            <p class="subtitle">Start understanding your money better.</p>
+            
+            <form method="post">
+                {% csrf_token %}
+                
+                {% if form.errors %}
+                <div class="error-message">
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    {% endfor %}
+                    {% for error in form.non_field_errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <div class="form-group">
+                    <div class="label-row">
+                        <label for="id_username">Username</label>
+                        <span class="hint">Letters, digits & @/./+/-/_</span>
+                    </div>
+                    <input type="text" name="username" id="id_username" placeholder="Enter your username" required autofocus {% if form.username.value %}value="{{ form.username.value }}"{% endif %}>
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_password1">Password</label>
+                    <input type="password" name="password1" id="id_password1" placeholder="Create a password" required>
+                    <div class="password-icon" id="togglePassword1">
+                        <!-- Eye Icon -->
+                        <svg class="eyeIcon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                        <!-- Eye Off Icon (hidden initially) -->
+                        <svg class="eyeOffIcon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                            <line x1="1" y1="1" x2="23" y2="23"></line>
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="password-requirements">
+                    <div class="req-title">PASSWORD REQUIREMENTS</div>
+                    <div class="req-item"><div class="req-circle"></div> At least 8 characters</div>
+                    <div class="req-item"><div class="req-circle"></div> Cannot be too similar to your username</div>
+                    <div class="req-item"><div class="req-circle"></div> Cannot be a commonly used password</div>
+                    <div class="req-item"><div class="req-circle"></div> Cannot be entirely numeric</div>
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 24px;">
+                    <label for="id_password2">Confirm password</label>
+                    <input type="password" name="password2" id="id_password2" placeholder="Re-enter your password" required>
+                    <div class="password-icon" id="togglePassword2">
+                        <!-- Eye Icon -->
+                        <svg class="eyeIcon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                        <!-- Eye Off Icon (hidden initially) -->
+                        <svg class="eyeOffIcon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                            <line x1="1" y1="1" x2="23" y2="23"></line>
+                        </svg>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-submit">Create account</button>
+                
+                <div class="register-link">
+                    Already have an account? <a href="{% url 'login' %}">Log in</a>
+                </div>
+            </form>
+        </div>
+        
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        © DhanTrack <span>•</span> Privacy <span>•</span> Terms
+    </div>
+
+    <script>
+        function setupToggle(toggleId, inputId) {
+            const toggleWrapper = document.getElementById(toggleId);
+            const inputField = document.getElementById(inputId);
+            const eyeIcon = toggleWrapper.querySelector('.eyeIcon');
+            const eyeOffIcon = toggleWrapper.querySelector('.eyeOffIcon');
+
+            toggleWrapper.addEventListener('click', function (e) {
+                const type = inputField.getAttribute('type') === 'password' ? 'text' : 'password';
+                inputField.setAttribute('type', type);
+                
+                if (type === 'text') {
+                    eyeIcon.style.display = 'none';
+                    eyeOffIcon.style.display = 'block';
+                } else {
+                    eyeIcon.style.display = 'block';
+                    eyeOffIcon.style.display = 'none';
+                }
+            });
+        }
+
+        setupToggle('togglePassword1', 'id_password1');
+        setupToggle('togglePassword2', 'id_password2');
+    </script>
+</body>
+</html>
