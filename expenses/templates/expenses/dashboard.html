@@ -1,265 +1,478 @@
 {% extends 'expenses/base.html' %}
+{% block title %}Overview — MoneyMitra{% endblock %}
 
 {% block content %}
 <style>
-    .dashboard-wrapper {
+    .dash-balance-hero {
+        padding: 48px 0 40px;
+        position: relative;
+        z-index: 2;
+    }
+    .dash-balance-amount {
         font-family: 'Inter', sans-serif;
-        max-width: 1200px;
-        margin: 0 auto;
+        font-size: 64px;
+        font-weight: 700;
+        letter-spacing: -0.04em;
+        line-height: 1;
+        color: #ffffff;
+        text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+    @media (max-width: 768px) {
+        .dash-balance-amount { font-size: 44px; }
+    }
+
+    .dash-metric-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        margin-top: 40px;
+    }
+    .dash-metric {
+        position: relative;
+        background: rgba(20, 20, 22, 0.4);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
+        border-left: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 24px 28px;
+        box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+        transition: transform 0.3s ease, border-color 0.3s ease;
+        overflow: visible;
+    }
+    .dash-metric::before {
+        content: ""; position: absolute; top: 0; left: 24px; right: 24px; height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(221,167,81,0.4), transparent);
+    }
+    .dash-metric:hover {
+        border-color: rgba(255, 255, 255, 0.15);
+        transform: translateY(-4px);
+    }
+    @media (max-width: 768px) {
+        .dash-metric-row { grid-template-columns: 1fr; }
+    }
+
+    .ledger-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .ledger-item:last-child { border-bottom: none; }
+
+    .cat-bar-track {
+        height: 4px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 2px;
+        margin-top: 10px;
+        overflow: hidden;
+    }
+    .cat-bar-fill {
+        height: 100%;
+        background: #DDA751;
+        border-radius: 2px;
+        transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 0 8px rgba(221, 167, 81, 0.5);
+    }
+
+    .dash-panel {
+        position: relative;
+        background: rgba(20, 20, 22, 0.4);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
+        border-left: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 32px;
+        box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+        transition: transform 0.3s ease, border-color 0.3s ease;
+        overflow: visible;
+    }
+    .dash-panel::before {
+        content: ""; position: absolute; top: 0; left: 32px; right: 32px; height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(221,167,81,0.6), transparent);
+    }
+    .dash-panel:hover {
+        border-color: rgba(255, 255, 255, 0.15);
+    }
+    .dash-panel-lg { padding: 40px; }
+    @media (max-width: 768px) {
+        .dash-panel, .dash-panel-lg { padding: 24px 20px; }
+    }
+
+    .dash-section-label {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: #a1a1aa;
+        margin-bottom: 20px;
+    }
+
+    .dash-cta-strip {
+        position: relative;
+        background: rgba(20, 20, 22, 0.4);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
+        border-left: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 32px 40px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+        transition: transform 0.3s ease, border-color 0.3s ease;
+        overflow: hidden;
+    }
+    .dash-cta-strip::before {
+        content: ""; position: absolute; top: 0; left: 32px; right: 32px; height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(221,167,81,0.6), transparent);
+    }
+    .dash-cta-strip:hover {
+        border-color: rgba(255, 255, 255, 0.15);
+        transform: translateY(-2px);
+    }
+    @media (max-width: 768px) {
+        .dash-cta-strip { flex-direction: column; align-items: flex-start; padding: 24px 20px; }
+    }
+
+    .view-link {
+        font-size: 13px;
+        font-weight: 600;
+        color: #a1a1aa;
+        text-decoration: none;
+        transition: color 0.15s;
+    }
+    .view-link:hover { color: #ffffff; }
+
+    /* Button overrides for premium feel */
+    .mm-btn-ghost {
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: #ffffff !important;
+        transition: all 0.3s ease !important;
+    }
+    .mm-btn-ghost:hover {
+        background: rgba(255, 255, 255, 0.1) !important;
+        border-color: rgba(255, 255, 255, 0.2) !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+    }
+    .mm-btn-primary {
+        background: linear-gradient(135deg, #DDA751 0%, #B67B29 100%) !important;
+        border: none !important;
+        color: #000000 !important;
+        font-weight: 600 !important;
+        box-shadow: 0 4px 16px rgba(221, 167, 81, 0.4) !important;
+        transition: all 0.3s ease !important;
+    }
+    .mm-btn-primary:hover {
+        box-shadow: 0 6px 20px rgba(221, 167, 81, 0.6) !important;
+        transform: translateY(-2px) !important;
+    }
+
+    /* Scroll Reveal Effect */
+    .reveal-item {
+        opacity: 0;
+        transform: translateY(24px);
+        transition: opacity 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .reveal-item.is-visible {
+        opacity: 1;
+        transform: none;
+    }
+
+    /* Background Animations (Alive & Dynamic) */
+    @keyframes float-glow-1 {
+        0% { opacity: 0.4; transform: scale(1) translate(0, 0); }
+        50% { opacity: 1; transform: scale(1.15) translate(30px, -20px); }
+        100% { opacity: 0.4; transform: scale(1) translate(0, 0); }
+    }
+    @keyframes float-glow-2 {
+        0% { opacity: 0.4; transform: scale(1) translate(0, 0); }
+        50% { opacity: 1; transform: scale(1.2) translate(-30px, 20px); }
+        100% { opacity: 0.4; transform: scale(1) translate(0, 0); }
+    }
+    @keyframes float-arc-1 {
+        0% { opacity: 0.6; transform: scale(1) rotate(0deg) translate(0, 0); }
+        50% { opacity: 1; transform: scale(1.05) rotate(5deg) translate(20px, 15px); }
+        100% { opacity: 0.6; transform: scale(1) rotate(0deg) translate(0, 0); }
+    }
+    @keyframes float-arc-2 {
+        0% { opacity: 0.6; transform: scale(1) rotate(0deg) translate(0, 0); }
+        50% { opacity: 1; transform: scale(1.05) rotate(-5deg) translate(-25px, -15px); }
+        100% { opacity: 0.6; transform: scale(1) rotate(0deg) translate(0, 0); }
     }
     
-    /* Subtle overrides for global body if needed inside wrapper */
-    .dashboard-wrapper h1, .dashboard-wrapper h2, .dashboard-wrapper h4, .dashboard-wrapper h5 {
-        letter-spacing: -0.02em;
-    }
-    
-    .recent-item:last-child {
-        border-bottom: none !important;
-        padding-bottom: 0 !important;
-        margin-bottom: 0 !important;
-    }
-    .color-1 { background-color: #2563eb !important; }
-    .color-2 { background-color: #3b82f6 !important; }
-    .color-3 { background-color: #60a5fa !important; }
-    .color-4 { background-color: #10b981 !important; }
-    .color-5 { background-color: #94a3b8 !important; }
+    .bg-glow-1 { animation: float-glow-1 12s infinite ease-in-out; }
+    .bg-glow-2 { animation: float-glow-2 15s infinite ease-in-out; }
+    .bg-arc-1 { animation: float-arc-1 14s infinite ease-in-out; }
+    .bg-arc-2 { animation: float-arc-2 18s infinite ease-in-out; }
+    .bg-arc-3 { animation: float-arc-1 22s infinite ease-in-out reverse; }
 </style>
 
-<div class="dashboard-wrapper">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-end mb-4">
-        <div>
-            <div class="text-uppercase text-secondary fw-bold" style="font-size: 11px; letter-spacing: 0.5px;">
-                <span style="color: #16a34a; margin-right: 4px;">●</span> {% now "F Y" %} FISCAL CYCLE
-            </div>
-            <h1 class="fw-bold mt-1 mb-1" style="font-size: 28px;">Good morning, <span style="color: #2563eb;">{{ user.username }}</span></h1>
-            <p class="text-secondary mb-0" style="font-size: 14px;">Here's your comprehensive financial overview and capital trajectory for {% now "F Y" %}.</p>
-        </div>
-        <div class="d-none d-md-block">
-            <button class="btn btn-light bg-white border" style="font-size: 13px; font-weight: 500; color: #374151; padding: 6px 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
-                📅 {% now "M 1" %} – {% now "M t, Y" %}
-            </button>
-        </div>
-    </div>
-    
-    <!-- Top Cards row -->
-    <div class="card border-0 shadow-sm rounded-4 p-4 mb-4" style="background-color: #ffffff;">
-        <!-- Top balance header -->
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start mb-4">
-            <div class="mb-3 mb-md-0">
-                <div class="text-secondary text-uppercase fw-bold" style="font-size: 11px; letter-spacing: 0.5px;">Total Balance</div>
-                <div class="d-flex align-items-center mt-1">
-                    <h2 class="fw-bold mb-0 me-3" style="font-size: 36px;">₹{{ balance|floatformat:2 }}</h2>
-                    {% if balance >= 0 %}
-                    <span class="badge rounded-pill bg-success text-success bg-opacity-25 px-3 py-1 d-flex align-items-center" style="font-size: 12px; font-weight: 600;"><span class="me-1">●</span> Positive balance</span>
-                    {% else %}
-                    <span class="badge rounded-pill bg-danger text-danger bg-opacity-25 px-3 py-1 d-flex align-items-center" style="font-size: 12px; font-weight: 600;"><span class="me-1">●</span> Negative balance</span>
-                    {% endif %}
-                </div>
-                <p class="text-secondary mt-1 mb-0" style="font-size: 13px;">You're currently in {% if balance >= 0 %}positive{% else %}negative{% endif %} balance with steady net flows.</p>
-            </div>
-            <div>
-                <a href="{% url 'expense_list' %}" class="btn btn-light border-0 text-primary fw-medium px-3 py-2" style="background-color: #eff6ff; font-size: 13px; border-radius: 6px;">View Full Ledger →</a>
-            </div>
-        </div>
+<div class="mm-page" style="position: relative; z-index: 1;">
+    <!-- Cinematic Orbital Background -->
+    <div style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; overflow: hidden; z-index: -1; pointer-events: none; background-color: #030405;">
+        <!-- Very large, extremely soft blue radial glow (left) -->
+        <div class="bg-glow-1" style="position: absolute; top: 20%; left: -20%; width: 50vw; height: 50vw; border-radius: 50%; background: radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%); filter: blur(100px);"></div>
         
-        <!-- 3 sub-cards -->
-        <div class="row g-3">
-            <div class="col-md-4">
-                <div class="rounded-3 p-3 h-100" style="background-color: #f8fafc; border: 1px solid #f1f5f9;">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <span class="text-secondary" style="font-size: 13px;">Total Inflows</span>
-                        <span class="badge rounded-pill text-success bg-success bg-opacity-25" style="font-size: 11px;">↗ +12% vs last month</span>
-                    </div>
-                    <div class="fw-bold mt-1" style="font-size: 20px; color: #0f172a;">₹{{ total_income|floatformat:2 }}</div>
-                    <div class="text-secondary mt-1" style="font-size: 11px;">{{ income_count }} verified income streams</div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="rounded-3 p-3 h-100" style="background-color: #f8fafc; border: 1px solid #f1f5f9;">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <span class="text-secondary" style="font-size: 13px;">Total Outflows</span>
-                        <span class="badge rounded-pill text-danger bg-danger bg-opacity-25" style="font-size: 11px;">↓ 45% of total income</span>
-                    </div>
-                    <div class="fw-bold mt-1" style="font-size: 20px; color: #0f172a;">₹{{ total_expense|floatformat:2 }}</div>
-                    <div class="text-secondary mt-1" style="font-size: 11px;">Under monthly benchmark cap</div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="rounded-3 p-3 h-100" style="background-color: #f8fafc; border: 1px solid #f1f5f9;">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <span class="text-secondary" style="font-size: 13px;">Net Capital Retained</span>
-                        <span class="badge rounded-pill text-primary bg-primary bg-opacity-25" style="font-size: 11px;">55% Saved</span>
-                    </div>
-                    <div class="fw-bold text-primary mt-1" style="font-size: 20px;">₹{{ balance|floatformat:2 }}</div>
-                    <div class="text-secondary mt-1" style="font-size: 11px;">Surplus available for deployment</div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Middle Section: Categories -->
-    <div class="row g-4 mb-4">
-        <!-- Left: Overview -->
-        <div class="col-lg-7">
-            <div class="card border-0 shadow-sm rounded-4 h-100 p-4" style="background-color: #ffffff;">
-                <div class="d-flex justify-content-between align-items-start mb-4">
-                    <div>
-                        <h5 class="fw-bold mb-1" style="font-size: 16px; color: #0f172a;">Spending Overview</h5>
-                        <p class="text-secondary mb-0" style="font-size: 13px;">Proportional breakdown across active categories this month</p>
-                    </div>
-                    <div>
-                        <span class="badge bg-light text-secondary border fw-medium" style="font-size: 11px;">₹{{ month_total_expense|floatformat:2 }} Tracked</span>
-                    </div>
-                </div>
-                
-                <div class="category-list">
-                    {% for cat in category_totals %}
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between align-items-end mb-2">
-                            <div class="d-flex align-items-center">
-                                <div class="bg-light rounded d-flex align-items-center justify-content-center me-2 text-primary shadow-sm" style="width: 24px; height: 24px; font-size: 12px; background-color: #eff6ff !important;">
-                                    ✦
-                                </div>
-                                <span style="font-size: 13px; font-weight: 500; color: #1e293b;">{{ cat.category }}</span>
-                            </div>
-                            <div style="font-size: 13px;">
-                                <span class="fw-bold text-dark">₹{{ cat.total|floatformat:2 }}</span> <span class="text-secondary">· {{ cat.percentage }}%</span>
-                            </div>
-                        </div>
-                        <div class="progress shadow-sm" style="height: 6px; border-radius: 3px; background-color: #f1f5f9; overflow: hidden;">
-                            <div class="progress-bar rounded-pill color-{% if forloop.counter <= 4 %}{{ forloop.counter }}{% else %}5{% endif %}" role="progressbar" data-width="{{ cat.percentage }}" aria-valuenow="{{ cat.percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
-                        </div>
-                    </div>
-                    {% empty %}
-                    <div class="text-center text-muted py-4" style="font-size: 14px;">No spending data logged for this month yet.</div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
+        <!-- Very large, extremely soft gold radial glow (upper/right) -->
+        <div class="bg-glow-2" style="position: absolute; top: -10%; right: -20%; width: 60vw; height: 60vw; border-radius: 50%; background: radial-gradient(circle, rgba(212,175,55,0.07) 0%, transparent 70%); filter: blur(100px);"></div>
+
+        <!-- Glassy glowing curved/orbital arcs -->
+        <!-- Blue arc -->
+        <div class="bg-arc-1" style="position: absolute; top: 10%; left: -30vw; width: 70vw; height: 70vw; border-radius: 50%; border: 1px solid rgba(59,130,246,0.4); box-shadow: inset 0 0 40px rgba(59,130,246,0.15), 0 0 60px rgba(59,130,246,0.2);"></div>
         
-        <!-- Right: Analysis -->
-        <div class="col-lg-5">
-            <div class="card border-0 shadow-sm rounded-4 h-100 p-4" style="background-color: #ffffff;">
-                <div class="text-primary text-uppercase fw-bold mb-3 d-flex align-items-center" style="font-size: 11px; letter-spacing: 0.5px;">
-                    <span class="me-2 fs-6">📈</span> MONTHLY SPENDING ANALYSIS
-                </div>
-                {% if largest_category %}
-                <h4 class="fw-bold mb-2 text-dark" style="font-size: 18px; line-height: 1.4;">{{ largest_category.category }} is currently your largest spending category.</h4>
-                <p class="text-secondary mb-4" style="font-size: 13px; line-height: 1.5;">At <span class="fw-bold text-dark">₹{{ largest_category.total|floatformat:2 }}</span>, {{ largest_category.category|lower }} take up {{ largest_category.percentage }}% of your overall monthly expenses.</p>
-                {% else %}
-                <h4 class="fw-bold mb-2 text-dark" style="font-size: 18px; line-height: 1.4;">Not enough data yet.</h4>
-                <p class="text-secondary mb-4" style="font-size: 13px; line-height: 1.5;">Log more expenses to unlock your spending analysis.</p>
-                {% endif %}
-                
-                <div class="rounded-3 p-3 mb-3 border" style="background-color: #f8fafc; border-color: #f1f5f9 !important;">
-                    <div class="text-secondary mb-1" style="font-size: 12px;">Daily Consumption Rate</div>
-                    <div class="d-flex align-items-end">
-                        <span class="fw-bold me-1 text-dark" style="font-size: 24px;">₹{{ daily_consumption|floatformat:2 }}</span> <span class="text-secondary pb-1" style="font-size: 13px;">/ day</span>
-                    </div>
-                </div>
-                
-                {% if largest_category %}
-                <div class="rounded-3 p-3 d-flex align-items-start mb-4" style="background-color: #dcfce7;">
-                    <span class="text-success me-2 fw-bold">✓</span>
-                    <div class="text-success" style="font-size: 12px; font-weight: 500; line-height: 1.4;">
-                        You have stayed within 80% of your projected {{ largest_category.category|lower }} budget this month.
-                    </div>
-                </div>
-                {% endif %}
-                
-                <a href="{% url 'smart_spending' %}" class="text-decoration-none fw-semibold d-inline-block mt-auto" style="color: #2563eb; font-size: 13px;">See category trend analysis →</a>
+        <!-- Gold arc 1 -->
+        <div class="bg-arc-2" style="position: absolute; top: -20vh; right: -10vw; width: 60vw; height: 60vw; border-radius: 50%; border: 1px solid rgba(212,175,55,0.4); box-shadow: inset 0 0 40px rgba(212,175,55,0.15), 0 0 60px rgba(212,175,55,0.2);"></div>
+        
+        <!-- Gold arc 2 (outer) -->
+        <div class="bg-arc-3" style="position: absolute; top: -10vh; right: -20vw; width: 80vw; height: 80vw; border-radius: 50%; border: 1px solid rgba(212,175,55,0.2); box-shadow: inset 0 0 20px rgba(212,175,55,0.05), 0 0 30px rgba(212,175,55,0.1);"></div>
+
+        <!-- Subtle atmospheric bloom/noise depth -->
+        <div style="position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, transparent 30%, rgba(3,4,5,0.8) 100%);"></div>
+    </div>
+
+    <!-- ── 1. Hero: Balance ── -->
+    <div class="dash-balance-hero">
+        <div class="mm-page-eyebrow">{% now "F Y" %} · Overview</div>
+        <div style="margin-bottom: 12px;">
+            <span style="font-size: 15px; color: var(--mm-text-secondary);">Good to see you, <strong style="color: var(--mm-text);">{{ user.username }}</strong></span>
+        </div>
+
+        <div style="font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--mm-text-muted); margin-bottom: 16px;">Net Balance</div>
+        <div class="dash-balance-amount">
+            {% if balance >= 0 %}₹{{ balance|floatformat:2 }}{% else %}−₹{{ balance|floatformat:2|slice:"1:" }}{% endif %}
+        </div>
+        <div style="margin-top: 12px; font-size: 14px; color: var(--mm-text-secondary);">
+            You are in
+            <span style="color: {% if balance >= 0 %}var(--mm-green){% else %}var(--mm-red){% endif %}; font-weight: 600;">
+                {% if balance >= 0 %}positive{% else %}negative{% endif %} balance
+            </span>
+            this month.
+        </div>
+
+        <!-- 3-metric strip -->
+        <div class="dash-metric-row">
+            <div class="dash-metric">
+                <div style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--mm-text-muted); margin-bottom: 10px;">Total Inflows</div>
+                <div style="font-family: 'IBM Plex Mono', monospace; font-size: 22px; font-weight: 600; color: var(--mm-green); letter-spacing: -0.03em; margin-bottom: 4px;">₹{{ total_income|floatformat:2 }}</div>
+                <div style="font-size: 12px; color: var(--mm-text-muted);">{{ income_count }} income record{{ income_count|pluralize }}</div>
+            </div>
+            <div class="dash-metric">
+                <div style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--mm-text-muted); margin-bottom: 10px;">Total Outflows</div>
+                <div style="font-family: 'IBM Plex Mono', monospace; font-size: 22px; font-weight: 600; color: var(--mm-red); letter-spacing: -0.03em; margin-bottom: 4px;">₹{{ total_expense|floatformat:2 }}</div>
+                <div style="font-size: 12px; color: var(--mm-text-muted);">{{ expense_count }} transactions</div>
+            </div>
+            <div class="dash-metric">
+                <div style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--mm-text-muted); margin-bottom: 10px;">Daily Rate</div>
+                <div style="font-family: 'IBM Plex Mono', monospace; font-size: 22px; font-weight: 600; color: var(--mm-text); letter-spacing: -0.03em; margin-bottom: 4px;">₹{{ daily_consumption|floatformat:2 }}</div>
+                <div style="font-size: 12px; color: var(--mm-text-muted);">per day this month</div>
             </div>
         </div>
     </div>
-    
-    <!-- Recent Lists row -->
-    <div class="row g-4 mb-4">
-        <div class="col-lg-6">
-            <div class="card border-0 shadow-sm rounded-4 h-100 p-4" style="background-color: #ffffff;">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <div>
-                        <h5 class="fw-bold mb-1 text-dark" style="font-size: 16px;">Recent Expenses</h5>
-                        <p class="text-secondary mb-0" style="font-size: 12px;">Latest outflows recorded</p>
+
+    <!-- ── 2. Recent Activity ── -->
+    <div class="mm-section">
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <div class="dash-panel h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="dash-section-label" style="margin-bottom:0;">Recent Expenses</div>
+                        <a href="{% url 'expense_list' %}" class="view-link">All expenses →</a>
                     </div>
-                    <a href="{% url 'expense_list' %}" class="text-decoration-none fw-semibold" style="color: #2563eb; font-size: 12px;">View all expenses ({{ expense_count }}) ›</a>
-                </div>
-                
-                <div>
                     {% for exp in recent_expenses %}
-                    <div class="recent-item d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom" style="border-color: #f1f5f9 !important;">
-                        <div class="d-flex align-items-center">
-                            <div class="rounded d-flex align-items-center justify-content-center me-3 text-primary" style="width: 36px; height: 36px; background-color: #eff6ff; font-size: 16px;">
-                                🛒
-                            </div>
-                            <div>
-                                <div class="fw-semibold text-dark" style="font-size: 13px;">{{ exp.description|default:exp.category }}</div>
-                                <div class="text-secondary" style="font-size: 11px;">{{ exp.category }} · {{ exp.date|date:"M d, Y" }}</div>
-                            </div>
+                    <div class="ledger-item">
+                        <div>
+                            <div style="font-size: 14px; font-weight: 600; margin-bottom: 2px; color: var(--mm-text);">{{ exp.description|default:exp.category }}</div>
+                            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--mm-text-muted);">{{ exp.category }} · {{ exp.date|date:"d M Y" }}</div>
                         </div>
-                        <div class="fw-bold text-danger" style="font-size: 13px;">
-                            -₹{{ exp.amount|floatformat:2 }}
-                        </div>
+                        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 600; color: var(--mm-red); white-space: nowrap; margin-left: 16px;">−₹{{ exp.amount|floatformat:2 }}</div>
                     </div>
                     {% empty %}
-                    <div class="text-center text-muted py-3" style="font-size: 13px;">No recent expenses.</div>
+                    <div style="font-size: 14px; color: var(--mm-text-muted); padding: 24px 0; text-align: center;">No recent expenses.</div>
                     {% endfor %}
                 </div>
             </div>
-        </div>
-        
-        <div class="col-lg-6">
-            <div class="card border-0 shadow-sm rounded-4 h-100 p-4" style="background-color: #ffffff;">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <div>
-                        <h5 class="fw-bold mb-1 text-dark" style="font-size: 16px;">Recent Income</h5>
-                        <p class="text-secondary mb-0" style="font-size: 12px;">Latest recorded deposits</p>
+            <div class="col-lg-6">
+                <div class="dash-panel h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="dash-section-label" style="margin-bottom:0;">Recent Income</div>
+                        <a href="{% url 'income_list' %}" class="view-link">All income →</a>
                     </div>
-                    <a href="{% url 'income_list' %}" class="text-decoration-none fw-semibold" style="color: #2563eb; font-size: 12px;">View all income ({{ income_count }}) ›</a>
-                </div>
-                
-                <div>
                     {% for inc in recent_incomes %}
-                    <div class="recent-item d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom" style="border-color: #f1f5f9 !important;">
-                        <div class="d-flex align-items-center">
-                            <div class="rounded d-flex align-items-center justify-content-center me-3 text-success" style="width: 36px; height: 36px; background-color: #f0fdf4; font-size: 16px;">
-                                💰
-                            </div>
-                            <div>
-                                <div class="fw-semibold text-dark" style="font-size: 13px;">{{ inc.source }}</div>
-                                <div class="text-secondary" style="font-size: 11px;">Deposit · {{ inc.date|date:"M d, Y" }}</div>
-                            </div>
+                    <div class="ledger-item">
+                        <div>
+                            <div style="font-size: 14px; font-weight: 600; margin-bottom: 2px; color: var(--mm-text);">{{ inc.source }}</div>
+                            <div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--mm-text-muted);">Deposit · {{ inc.date|date:"d M Y" }}</div>
                         </div>
-                        <div class="fw-bold text-success" style="font-size: 13px;">
-                            +₹{{ inc.amount|floatformat:2 }}
-                        </div>
+                        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 600; color: var(--mm-green); white-space: nowrap; margin-left: 16px;">+₹{{ inc.amount|floatformat:2 }}</div>
                     </div>
                     {% empty %}
-                    <div class="text-center text-muted py-3" style="font-size: 13px;">No recent income.</div>
+                    <div style="font-size: 14px; color: var(--mm-text-muted); padding: 24px 0; text-align: center;">No recent income.</div>
                     {% endfor %}
-                </div>
-                
-                <div class="rounded-3 p-2 d-flex align-items-center mt-3" style="background-color: #f8fafc;">
-                    <span class="text-success mx-2 fw-bold" style="font-size: 14px;">✓</span>
-                    <span class="text-secondary" style="font-size: 11px;">All verified recurring deposits accounted for this calendar month.</span>
                 </div>
             </div>
         </div>
     </div>
-    
-    <!-- Smart Spending Banner -->
-    <div class="card border-0 shadow-sm rounded-4 p-4 mb-5" style="background-color: #f8fafc; border: 1px solid #f1f5f9 !important;">
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
-            <div class="mb-3 mb-md-0">
-                <div class="text-primary text-uppercase fw-bold mb-1" style="font-size: 11px; letter-spacing: 0.5px;">SMART SPENDING</div>
-                <h4 class="fw-bold mb-1 text-dark" style="font-size: 18px;">Understand where your money goes.</h4>
-                <p class="text-secondary mb-0" style="font-size: 13px; max-width: 600px;">Discover your spending patterns, identify meaningful trends, and experiment with better spending habits backed by your actual data.</p>
+
+    <!-- ── 3. Spending Composition ── -->
+    <div class="mm-section">
+        <div class="row g-4">
+            <div class="col-lg-7">
+                <div class="dash-panel h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="dash-section-label" style="margin-bottom:0;">Where Your Money Goes</div>
+                        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--mm-text-muted);">₹{{ month_total_expense|floatformat:2 }}</span>
+                    </div>
+                    {% for cat in category_totals %}
+                    <div style="margin-bottom: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px;">
+                            <span style="font-size: 14px; font-weight: 500; color: var(--mm-text);">{{ cat.category }}</span>
+                            <div style="text-align: right;">
+                                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--mm-text);">₹{{ cat.total|floatformat:2 }}</span>
+                                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--mm-text-muted); margin-left: 8px;">{{ cat.percentage }}%</span>
+                            </div>
+                        </div>
+                        <div class="cat-bar-track">
+                            <div class="cat-bar-fill" data-width="{{ cat.percentage }}"></div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div style="font-size: 14px; color: var(--mm-text-muted); padding: 24px 0; text-align: center;">No spending data this month.</div>
+                    {% endfor %}
+                </div>
             </div>
-            <div>
-                <a href="{% url 'smart_spending' %}" class="btn btn-primary fw-semibold px-4 py-2 shadow-sm text-nowrap" style="background-color: #2563eb; border: none; font-size: 14px; border-radius: 6px;">Explore Smart Spending →</a>
+            <div class="col-lg-5">
+                <div class="dash-panel h-100 d-flex flex-column">
+                    <div class="dash-section-label">Monthly Analysis</div>
+                    {% if largest_category %}
+                    <div style="font-size: 20px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.3; margin-bottom: 12px;">
+                        {{ largest_category.category }} is your largest category this month.
+                    </div>
+                    <div style="font-size: 14px; color: var(--mm-text-secondary); line-height: 1.6; margin-bottom: 32px;">
+                        At <span style="font-family: 'IBM Plex Mono', monospace; color: var(--mm-text);">₹{{ largest_category.total|floatformat:2 }}</span>, it accounts for {{ largest_category.percentage }}% of your spending.
+                    </div>
+                    {% else %}
+                    <div style="font-size: 20px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 12px;">Not enough data yet.</div>
+                    <div style="font-size: 14px; color: var(--mm-text-secondary); margin-bottom: 32px;">Log more expenses to unlock your spending breakdown.</div>
+                    {% endif %}
+                    <div class="mt-auto">
+                        <a href="{% url 'smart_spending' %}" class="mm-btn mm-btn-ghost w-100" style="justify-content: center;">Full spending analysis →</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── 4. Plan & Simulate ── -->
+    <div class="mm-section">
+        <div class="row g-4">
+            <!-- Recurring -->
+            <div class="col-lg-4">
+                <div class="dash-panel h-100 d-flex flex-column">
+                    <div class="dash-section-label">Recurring</div>
+                    <div style="font-size: 28px; font-weight: 700; letter-spacing: -0.03em; font-family: 'IBM Plex Mono', monospace; color: var(--mm-text); margin-bottom: 8px;">{{ active_recurring_count }}</div>
+                    <div style="font-size: 14px; color: var(--mm-text-secondary); margin-bottom: 24px;">active recurring record{{ active_recurring_count|pluralize }}</div>
+                    <div class="mt-auto">
+                        <a href="{% url 'recurring_list' %}" class="mm-btn mm-btn-ghost" style="width: 100%; justify-content: center; font-size: 13px;">Manage →</a>
+                    </div>
+                </div>
+            </div>
+            <!-- Goals -->
+            <div class="col-lg-4">
+                <div class="dash-panel h-100 d-flex flex-column">
+                    <div class="dash-section-label">Goals</div>
+                    <div style="font-size: 28px; font-weight: 700; letter-spacing: -0.03em; font-family: 'IBM Plex Mono', monospace; color: var(--mm-gold); margin-bottom: 8px;">{{ active_goals_count }}</div>
+                    <div style="font-size: 14px; color: var(--mm-text-secondary); margin-bottom: 24px;">active goal{{ active_goals_count|pluralize }} in progress</div>
+                    <div class="mt-auto">
+                        <a href="{% url 'goal_list' %}" class="mm-btn mm-btn-ghost" style="width: 100%; justify-content: center; font-size: 13px;">Manage →</a>
+                    </div>
+                </div>
+            </div>
+            <!-- Forecast CTA -->
+            <div class="col-lg-4">
+                <div class="dash-panel h-100 d-flex flex-column" style="background: var(--mm-glass-2);">
+                    <div class="dash-section-label">Forecast</div>
+                    <div style="font-size: 18px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 8px; line-height: 1.3;">See what's coming next.</div>
+                    <div style="font-size: 14px; color: var(--mm-text-secondary); margin-bottom: 24px;">Actual history alongside expected upcoming flows.</div>
+                    <div class="mt-auto">
+                        <a href="{% url 'forecast' %}" class="mm-btn mm-btn-primary" style="width: 100%; justify-content: center; font-size: 13px;">Cash Flow Forecast →</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── 5. Simulate / Reports ── -->
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="dash-cta-strip">
+                <div>
+                    <div class="dash-section-label">Simulate</div>
+                    <div style="font-size: 18px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 6px;">Money Simulator</div>
+                    <div style="font-size: 14px; color: var(--mm-text-secondary);">Test hypothetical scenarios without affecting real data.</div>
+                </div>
+                <a href="{% url 'simulator' %}" class="mm-btn mm-btn-ghost" style="flex-shrink: 0;">Run Scenario →</a>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="dash-cta-strip">
+                <div>
+                    <div class="dash-section-label">Grow</div>
+                    <div style="font-size: 18px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 6px;">Comprehensive Reports</div>
+                    <div style="font-size: 14px; color: var(--mm-text-secondary);">Deep financial history, audit PDF, and comparisons.</div>
+                </div>
+                <a href="{% url 'reports' %}" class="mm-btn mm-btn-ghost" style="flex-shrink: 0;">View Reports →</a>
             </div>
         </div>
     </div>
 
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // 1. Animate category bars
+    setTimeout(() => {
+        document.querySelectorAll('.cat-bar-fill[data-width]').forEach(function(el) {
+            el.style.width = el.getAttribute('data-width') + '%';
+        });
+    }, 100);
+
+    // 2. Reveal on scroll effect
+    const revealElements = document.querySelectorAll('.dash-panel, .dash-cta-strip, .dash-metric-row, .dash-balance-hero');
+    
+    // Add base reveal class and stagger delays
+    revealElements.forEach((el, index) => {
+        el.classList.add('reveal-item');
+        // Provide a staggered fade-in based on item order
+        const delay = (index % 3) * 0.15; 
+        el.style.transitionDelay = delay + 's';
+    });
+
+    const observerOptions = {
+        root: null,
+        rootMargin: '0px 0px -40px 0px',
+        threshold: 0.1
+    };
+
+    const observer = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+            } else {
+                entry.target.classList.remove('is-visible');
+            }
+        });
+    }, observerOptions);
+
+    revealElements.forEach(el => observer.observe(el));
+});
+</script>
 {% endblock %}

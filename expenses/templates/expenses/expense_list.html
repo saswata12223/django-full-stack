@@ -1,348 +1,400 @@
 {% extends 'expenses/base.html' %}
+{% block title %}Expenses — MoneyMitra{% endblock %}
 
 {% block content %}
 <style>
-    /* Custom Styling to match the premium DhanTrack UI */
-    body {
-        background-color: #F8FAFC !important; /* Premium light grayish-blue background */
+    /* ── Background Animations ── */
+    @keyframes float-glow-1 {
+        0% { opacity: 0.4; transform: scale(1) translate(0, 0); }
+        50% { opacity: 1; transform: scale(1.15) translate(30px, -20px); }
+        100% { opacity: 0.4; transform: scale(1) translate(0, 0); }
     }
-    .expense-card {
-        border-radius: 16px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-        border: 1px solid #E2E8F0;
-        background-color: #ffffff;
+    @keyframes float-glow-2 {
+        0% { opacity: 0.4; transform: scale(1) translate(0, 0); }
+        50% { opacity: 1; transform: scale(1.2) translate(-30px, 20px); }
+        100% { opacity: 0.4; transform: scale(1) translate(0, 0); }
     }
-    .stat-box {
-        background-color: #F8FAFC;
-        border-radius: 12px;
-        border: 1px solid #F1F5F9;
-        padding: 16px;
+    @keyframes float-arc-1 {
+        0% { opacity: 0.6; transform: scale(1) rotate(0deg) translate(0, 0); }
+        50% { opacity: 1; transform: scale(1.05) rotate(5deg) translate(20px, 15px); }
+        100% { opacity: 0.6; transform: scale(1) rotate(0deg) translate(0, 0); }
     }
-    .icon-box {
-        width: 32px;
-        height: 32px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 14px;
+    @keyframes float-arc-2 {
+        0% { opacity: 0.6; transform: scale(1) rotate(0deg) translate(0, 0); }
+        50% { opacity: 1; transform: scale(1.05) rotate(-5deg) translate(-25px, -15px); }
+        100% { opacity: 0.6; transform: scale(1) rotate(0deg) translate(0, 0); }
     }
-    .bg-light-blue { background-color: #EFF6FF; color: #2563EB; }
-    .bg-light-red { background-color: #FEF2F2; color: #EF4444; }
-    
-    .table-container {
-        border: 1px solid #F1F5F9;
-        border-radius: 12px;
+    .bg-glow-1 { animation: float-glow-1 12s infinite ease-in-out; }
+    .bg-glow-2 { animation: float-glow-2 15s infinite ease-in-out; }
+    .bg-arc-1 { animation: float-arc-1 14s infinite ease-in-out; }
+    .bg-arc-2 { animation: float-arc-2 18s infinite ease-in-out; }
+    .bg-arc-3 { animation: float-arc-1 22s infinite ease-in-out reverse; }
+
+    /* ── Glass panel ── */
+    .rec-panel {
+        position: relative;
+        background: rgba(20, 20, 22, 0.4);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
+        border-left: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
         overflow: hidden;
     }
-    .table thead th {
-        background-color: #F8FAFC;
-        color: #64748B;
-        font-weight: 600;
-        font-size: 11px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        padding: 16px;
-        border-bottom: 1px solid #F1F5F9;
+    .rec-panel::before {
+        content: ""; position: absolute; top: 0; left: 36px; right: 36px; height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(221,167,81,0.6), transparent);
+        z-index: 1;
     }
-    .table tbody td {
-        padding: 16px;
-        vertical-align: middle;
-        border-bottom: 1px solid #F8FAFC;
-        font-size: 13px;
-        color: #334155;
+    .rec-panel-header { padding: 36px 36px 28px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .rec-title {
+        font-size: 32px; font-weight: 800; letter-spacing: -0.035em; margin-bottom: 6px;
+        background: linear-gradient(135deg, #ffffff 0%, #f3e3c3 55%, #DDA751 100%);
+        -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
     }
-    .table tbody tr:last-child td {
-        border-bottom: none;
+
+    .rec-section-label {
+        display: flex; align-items: center; gap: 12px;
+        font-size: 11px; font-weight: 700; text-transform: uppercase;
+        letter-spacing: 0.15em; color: #a1a1aa;
+        padding: 24px 36px 14px;
     }
-    .table tbody tr:hover {
-        background-color: #F8FAFC;
+    .rec-section-label::after {
+        content: ""; flex: 1; height: 1px;
+        background: linear-gradient(90deg, rgba(221,167,81,0.35), transparent);
     }
-    .category-badge {
-        padding: 4px 10px;
-        border-radius: 20px;
-        font-size: 11px;
-        font-weight: 500;
-        background-color: #EFF6FF;
-        color: #2563EB;
-    }
-    .filter-input {
-        background-color: #F8FAFC;
-        border: 1px solid #E2E8F0;
-        border-radius: 8px;
-        font-size: 13px;
-        padding: 10px 14px;
-        color: #334155;
-    }
-    .filter-input:focus {
-        border-color: #93C5FD;
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        outline: none;
-    }
-    .filter-btn {
-        background-color: #EFF6FF;
-        color: #2563EB;
-        border: none;
-        border-radius: 8px;
-        font-weight: 600;
-        font-size: 13px;
-        padding: 10px 16px;
-        transition: all 0.2s ease;
-    }
-    .filter-btn:hover {
-        background-color: #DBEAFE;
-    }
-    .category-bar-segment {
-        height: 8px;
-    }
-    .category-bar-segment:first-child { border-top-left-radius: 4px; border-bottom-left-radius: 4px; }
-    .category-bar-segment:last-child { border-top-right-radius: 4px; border-bottom-right-radius: 4px; }
-    .cat-color-1 { background-color: #2563EB; }
-    .cat-color-2 { background-color: #3B82F6; }
-    .cat-color-3 { background-color: #60A5FA; }
-    .cat-color-4 { background-color: #93C5FD; }
-    .cat-color-5 { background-color: #E2E8F0; }
-    .cat-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 6px; }
     
-    .pagination .page-item .page-link {
-        border: none;
-        color: #64748B;
-        border-radius: 8px;
-        margin: 0 2px;
-        font-size: 13px;
-        padding: 6px 12px;
+    .list-panel-inner { padding: 0 36px; }
+
+    /* Stats Grid */
+    .stats-grid {
+        display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
+        background: rgba(255, 255, 255, 0.06); border-radius: 12px; overflow: hidden; margin: 28px 0;
     }
-    .pagination .page-item.active .page-link {
-        background-color: #2563EB;
-        color: white;
+    .stats-cell { background: rgba(20,20,22,0.5); padding: 20px 24px; backdrop-filter: blur(20px); }
+    .stats-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--mm-text-muted); margin-bottom: 8px; }
+    .stats-value { font-family: 'IBM Plex Mono', monospace; font-size: 20px; font-weight: 600; color: var(--mm-text); letter-spacing: -0.03em; }
+
+    /* Filters */
+    .filter-form { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 24px; }
+    .filter-form input, .filter-form select {
+        background: rgba(255,255,255,0.03) !important;
+        border: 1px solid rgba(255,255,255,0.08) !important;
+        color: #fff !important;
+        border-radius: 10px !important;
+        transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease !important;
     }
-    .pagination .page-item .page-link:hover:not(.active) {
-        background-color: #F1F5F9;
-        color: #0F172A;
+    .filter-form input:hover, .filter-form select:hover { border-color: rgba(255,255,255,0.16) !important; }
+    .filter-form input:focus, .filter-form select:focus {
+        background: rgba(255,255,255,0.05) !important;
+        border-color: rgba(221,167,81,0.55) !important;
+        box-shadow: 0 0 0 3px rgba(221,167,81,0.12) !important;
+        outline: none !important;
+    }
+
+    /* List rows */
+    .rec-list { padding: 0 20px 12px; }
+    .rec-row {
+        position: relative;
+        display: flex; align-items: center; justify-content: space-between; gap: 16px;
+        padding: 16px 20px;
+        margin-bottom: 8px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        transition: background 0.3s ease, border-color 0.3s ease, transform 0.3s cubic-bezier(0.2,0.8,0.2,1), box-shadow 0.3s ease;
+    }
+    .rec-row::before {
+        content: ""; position: absolute; left: 0; top: 14px; bottom: 14px; width: 2px;
+        border-radius: 2px; opacity: 0; transition: opacity 0.3s ease; background: var(--mm-red); box-shadow: 0 0 8px var(--mm-red);
+    }
+    .rec-row:hover {
+        background: rgba(255, 255, 255, 0.045);
+        border-color: rgba(221, 167, 81, 0.22);
+        transform: translateX(4px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    }
+    .rec-row:hover::before { opacity: 1; }
+
+    .rec-col-date { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--mm-text-muted); width: 90px; flex-shrink: 0; }
+    .rec-col-desc { flex: 1; min-width: 0; }
+    .rec-name { font-size: 15px; font-weight: 600; margin-bottom: 4px; color: #fff; letter-spacing: -0.01em; }
+    .rec-intent { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--mm-text-muted); }
+    .rec-col-cat { width: 120px; flex-shrink: 0; }
+    .rec-badge {
+        display: inline-flex; align-items: center; padding: 3px 10px;
+        border-radius: 20px; font-size: 11px; font-weight: 600;
+        background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+        color: var(--mm-text-secondary);
+    }
+    .rec-col-amt { width: 100px; text-align: right; flex-shrink: 0; }
+    .rec-amount { font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 600; white-space: nowrap; }
+    .rec-amount.out { color: var(--mm-red); text-shadow: 0 0 14px rgba(255,69,58,0.3); }
+
+    .rec-col-actions { display: flex; gap: 6px; flex-shrink: 0; }
+    .rec-action {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 32px; height: 32px; border-radius: 9px;
+        background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+        text-decoration: none; color: var(--mm-text-muted); font-size: 11px;
+        transition: all 0.25s ease;
+    }
+    .rec-action:hover {
+        background: rgba(221,167,81,0.1); border-color: rgba(221,167,81,0.4); color: #DDA751;
+        transform: translateY(-2px);
+    }
+    .rec-action.del:hover { color: var(--mm-red); border-color: rgba(255,69,58,0.35); background: rgba(255,69,58,0.08); }
+
+    /* Category Segments */
+    .cat-seg { height: 12px; transition: width 1.2s cubic-bezier(0.16, 1, 0.3, 1); cursor: pointer; position: relative; }
+    .cat-seg:hover::after {
+        content: attr(data-tooltip);
+        position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+        background: #111827; color: #DDA751; padding: 6px 10px; border-radius: 4px;
+        white-space: nowrap; font-size: 11px; pointer-events: none; z-index: 1000;
+        margin-bottom: 6px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); border: 1px solid #DDA751;
+    }
+    .cat-seg:first-child { border-radius: 6px 0 0 6px; }
+    .cat-seg:last-child { border-radius: 0 6px 6px 0; }
+    .cs-1 { background: #FF453A; box-shadow: 0 0 10px rgba(255, 69, 58, 0.4); }
+    .cs-2 { background: #DDA751; box-shadow: 0 0 10px rgba(221, 167, 81, 0.4); }
+    .cs-3 { background: #3B82F6; box-shadow: 0 0 10px rgba(59, 130, 246, 0.4); }
+    .cs-4 { background: #8B5CF6; box-shadow: 0 0 10px rgba(139, 92, 246, 0.4); }
+    .cs-5 { background: #06B6D4; box-shadow: 0 0 10px rgba(6, 182, 212, 0.4); }
+    .cat-dot { display:inline-block; width:6px; height:6px; border-radius:50%; }
+
+    /* ── Buttons ── */
+    .mm-btn-gold {
+        background: linear-gradient(135deg, #DDA751 0%, #B67B29 100%) !important;
+        border: none !important;
+        color: #000000 !important;
+        font-weight: 600 !important;
+        box-shadow: 0 4px 16px rgba(221, 167, 81, 0.4) !important;
+        transition: all 0.3s ease !important;
+    }
+    .mm-btn-gold:hover {
+        box-shadow: 0 6px 20px rgba(221, 167, 81, 0.6) !important;
+        transform: translateY(-2px) !important; color: #000 !important;
+    }
+
+    /* ── Scroll reveal ── */
+    .reveal-item {
+        opacity: 0;
+        transform: translateY(24px);
+        transition: opacity 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .reveal-item.is-visible { opacity: 1; transform: none; }
+    .rec-row.reveal-item.is-visible:hover { transform: translateX(4px); }
+
+    @media (max-width: 768px) {
+        .rec-panel-header { padding: 28px 20px 22px; }
+        .list-panel-inner { padding: 0 20px; }
+        .stats-grid { grid-template-columns: 1fr 1fr; }
+        .rec-row { flex-wrap: wrap; }
+        .rec-col-cat { width: auto; }
+        .rec-col-amt { width: auto; text-align: left; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .bg-glow-1, .bg-glow-2, .bg-arc-1, .bg-arc-2, .bg-arc-3 { animation: none; }
+        .reveal-item { opacity: 1; transform: none; transition: none; }
     }
 </style>
 
-<div class="expense-card p-4 p-md-5 mb-5">
-    
-    <!-- HEADER -->
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
-        <div>
-            <div class="d-flex align-items-center mb-1">
-                <h2 class="fw-bold text-dark mb-0 me-3" style="font-size: 24px; letter-spacing: -0.5px;">Expenses</h2>
-                <span class="badge bg-light-blue fw-semibold" style="font-size: 11px;">{{ current_cycle }}</span>
-            </div>
-            <p class="text-secondary mb-0" style="font-size: 13px;">Track, categorize, and optimize your monthly outflows with live ledger precision.</p>
-        </div>
-        <div class="d-flex gap-2 mt-3 mt-md-0">
-            <a href="{% url 'download_audit_pdf' %}" class="btn btn-outline-secondary fw-semibold border" style="font-size: 13px; padding: 10px 16px; border-radius: 8px;">
-                <i class="bi bi-download me-2"></i>Export Report
-            </a>
-            <a href="{% url 'expense_add' %}" class="btn btn-primary fw-semibold shadow-sm" style="font-size: 13px; padding: 10px 20px; border-radius: 8px; background-color: #2563EB; border: none;">
-                + Add Expense
-            </a>
-        </div>
+<div class="mm-page-wide" style="position: relative; z-index: 1; min-height: 80vh;">
+    <!-- Cinematic Orbital Background -->
+    <div style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; overflow: hidden; z-index: -1; pointer-events: none; background-color: #030405;">
+        <div class="bg-glow-1" style="position: absolute; top: 20%; left: -20%; width: 50vw; height: 50vw; border-radius: 50%; background: radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%); filter: blur(100px);"></div>
+        <div class="bg-glow-2" style="position: absolute; top: -10%; right: -20%; width: 60vw; height: 60vw; border-radius: 50%; background: radial-gradient(circle, rgba(212,175,55,0.07) 0%, transparent 70%); filter: blur(100px);"></div>
+        <div class="bg-arc-1" style="position: absolute; top: 10%; left: -30vw; width: 70vw; height: 70vw; border-radius: 50%; border: 1px solid rgba(59,130,246,0.4); box-shadow: inset 0 0 40px rgba(59,130,246,0.15), 0 0 60px rgba(59,130,246,0.2);"></div>
+        <div class="bg-arc-2" style="position: absolute; top: -20vh; right: -10vw; width: 60vw; height: 60vw; border-radius: 50%; border: 1px solid rgba(212,175,55,0.4); box-shadow: inset 0 0 40px rgba(212,175,55,0.15), 0 0 60px rgba(212,175,55,0.2);"></div>
+        <div class="bg-arc-3" style="position: absolute; top: -10vh; right: -20vw; width: 80vw; height: 80vw; border-radius: 50%; border: 1px solid rgba(212,175,55,0.2); box-shadow: inset 0 0 20px rgba(212,175,55,0.05), 0 0 30px rgba(212,175,55,0.1);"></div>
+        <div style="position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, transparent 30%, rgba(3,4,5,0.8) 100%);"></div>
     </div>
 
-    <!-- STATS ROW -->
-    <div class="row g-3 mb-4 pb-4 border-bottom" style="border-color: #F1F5F9 !important;">
-        <div class="col-md-3">
-            <div class="stat-box h-100">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="text-secondary fw-semibold" style="font-size: 11px;">Total Expenses</span>
-                    <div class="icon-box bg-light-red">📈</div>
+    <div class="rec-panel reveal-item">
+        <div class="rec-panel-header">
+            <nav aria-label="breadcrumb" style="margin-bottom: 16px;">
+                <ol class="breadcrumb" style="background: transparent; padding: 0;"><li class="breadcrumb-item active" style="color: #a1a1aa; font-weight: 500;">Expenses</li></ol>
+            </nav>
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+                <div>
+                    <div class="d-flex align-items-center gap-3 mb-1">
+                        <h2 class="rec-title">Expenses</h2>
+                        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--mm-text-muted); background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); padding: 3px 10px; border-radius: 20px;">{{ current_cycle }}</span>
+                    </div>
+                    <p style="font-size: 14px; color: var(--mm-text-secondary); margin: 0;">Track and categorize your monthly outflows.</p>
                 </div>
-                <div class="fw-bold text-dark mb-1" style="font-size: 22px; letter-spacing: -0.5px;">₹{{ total_amount|floatformat:2 }}</div>
-                <div class="text-success" style="font-size: 10px; font-weight: 500;">Calculated from currently filtered list</div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stat-box h-100">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="text-secondary fw-semibold" style="font-size: 11px;">Recorded Records</span>
-                    <div class="icon-box bg-light-blue">🧾</div>
-                </div>
-                <div class="fw-bold text-dark mb-1" style="font-size: 22px; letter-spacing: -0.5px;">{{ total_count }} <span class="text-secondary fw-normal" style="font-size: 12px;">transactions</span></div>
-                <div class="text-secondary" style="font-size: 10px; font-weight: 500;">Across {{ active_baskets }} active ledger baskets</div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stat-box h-100">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="text-secondary fw-semibold" style="font-size: 11px;">Largest Outflow</span>
-                    <div class="icon-box bg-light-blue">💎</div>
-                </div>
-                <div class="fw-bold text-dark mb-1" style="font-size: 22px; letter-spacing: -0.5px;">₹{{ largest_outflow|floatformat:2 }}</div>
-                <div class="text-secondary" style="font-size: 10px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                    {% if largest_expense %}{{ largest_expense.category }} - {{ largest_expense.date|date:"M d" }}{% else %}No data{% endif %}
+                <div class="mt-3 mt-md-0 d-flex gap-2">
+                    <a href="{% url 'download_audit_pdf' %}" class="mm-btn mm-btn-ghost mm-btn-sm">Export PDF</a>
+                    <a href="{% url 'expense_add' %}" class="mm-btn mm-btn-gold mm-btn-sm">+ Add Expense</a>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="stat-box h-100">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="text-secondary fw-semibold" style="font-size: 11px;">Average Outflow</span>
-                    <div class="icon-box bg-light-blue">📊</div>
-                </div>
-                <div class="fw-bold text-dark mb-1" style="font-size: 22px; letter-spacing: -0.5px;">₹{{ average_outflow|floatformat:2 }} <span class="text-secondary fw-normal" style="font-size: 12px;">/ item</span></div>
-                <div class="text-secondary" style="font-size: 10px; font-weight: 500;">Safe range within discretionary limit</div>
-            </div>
-        </div>
-    </div>
 
-    <!-- TABS & FILTERING -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <div class="d-flex gap-3">
-            <span class="text-primary fw-semibold border-bottom border-primary pb-1" style="font-size: 13px; border-width: 2px !important;">All Expenses</span>
-        </div>
-        <div class="text-secondary fw-medium d-none d-md-block" style="font-size: 11px;">
-            <span class="text-success me-1">●</span> Synced with DhanTrack Vault
-        </div>
-    </div>
+        <div class="list-panel-inner reveal-item">
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stats-cell">
+                    <div class="stats-label">Total</div>
+                    <div class="stats-value" style="color: var(--mm-red); text-shadow: 0 0 14px rgba(255,69,58,0.3);">₹{{ total_amount|floatformat:2 }}</div>
+                </div>
+                <div class="stats-cell">
+                    <div class="stats-label">Records</div>
+                    <div class="stats-value">{{ total_count }}</div>
+                </div>
+                <div class="stats-cell">
+                    <div class="stats-label">Largest</div>
+                    <div class="stats-value">₹{{ largest_outflow|floatformat:2 }}</div>
+                </div>
+                <div class="stats-cell">
+                    <div class="stats-label">Average</div>
+                    <div class="stats-value">₹{{ average_outflow|floatformat:2 }}</div>
+                </div>
+            </div>
 
-    <form method="get" action="{% url 'expense_list' %}" class="d-flex flex-wrap gap-3 align-items-stretch mb-4">
-        <div style="flex-grow: 1; min-width: 250px; position: relative;">
-            <input type="text" name="search" class="filter-input w-100 h-100" placeholder="Search expenses by description..." value="{{ search_query }}" style="padding-left: 36px !important;">
-            <span class="text-secondary position-absolute" style="left: 12px; top: 50%; transform: translateY(-50%); font-size: 13px;">🔍</span>
-        </div>
-        <div>
-            <select name="category" class="filter-input h-100" style="min-width: 150px;">
-                <option value="">All Categories</option>
-                {% for cat_val, cat_label in categories %}
+            <!-- Filters -->
+            <form method="get" action="{% url 'expense_list' %}" class="filter-form">
+                <input type="text" name="search" class="form-control" placeholder="Search description…" value="{{ search_query }}" style="max-width: 260px;">
+                <select name="category" class="form-select" style="max-width: 160px;">
+                    <option value="">All Categories</option>
+                    {% for cat_val, cat_label in categories %}
                     <option value="{{ cat_val }}" {% if selected_category == cat_val %}selected{% endif %}>{{ cat_label }}</option>
-                {% endfor %}
-            </select>
+                    {% endfor %}
+                </select>
+                <select name="intent" class="form-select" style="max-width: 140px;">
+                    <option value="">All Intents</option>
+                    {% for int_val, int_label in intents %}
+                    <option value="{{ int_val }}" {% if selected_intent == int_val %}selected{% endif %}>{{ int_label }}</option>
+                    {% endfor %}
+                </select>
+                <input type="date" name="date" class="form-control" value="{{ selected_date }}" style="max-width: 160px;">
+                <button type="submit" class="mm-btn mm-btn-ghost mm-btn-sm">Filter</button>
+                <a href="{% url 'expense_list' %}" class="mm-btn mm-btn-ghost mm-btn-sm">Clear</a>
+                <span style="margin-left: auto; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--mm-text-muted);">{{ expenses|length }} of {{ total_count }}</span>
+            </form>
         </div>
-        <div>
-            <input type="date" name="date" class="filter-input h-100" value="{{ selected_date }}">
-        </div>
-        <button type="submit" class="filter-btn h-100">Apply Filter</button>
-        <div class="d-flex align-items-center">
-            <a href="{% url 'expense_list' %}" class="text-secondary text-decoration-none fw-medium" style="font-size: 12px;">Clear filters</a>
-        </div>
-        <div class="ms-auto d-flex align-items-center text-secondary fw-semibold bg-light px-3 rounded" style="font-size: 11px;">
-            Showing {{ expenses|length }} of {{ total_count }}
-        </div>
-    </form>
 
-    <!-- EXPENSES TABLE -->
-    <div class="table-container mb-4">
-        <table class="table mb-0">
-            <thead>
-                <tr>
-                    <th style="width: 15%;">DATE</th>
-                    <th style="width: 35%;">DESCRIPTION</th>
-                    <th style="width: 25%;">CATEGORY</th>
-                    <th style="width: 15%; text-align: right;">AMOUNT</th>
-                    <th style="width: 10%; text-align: center;">ACTIONS</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for expense in expenses %}
-                <tr>
-                    <td class="text-secondary">{{ expense.date|date:"M d, Y" }}</td>
-                    <td>
-                        <div class="d-flex align-items-center">
-                            <div class="bg-light-blue rounded d-flex align-items-center justify-content-center me-3" style="width: 32px; height: 32px; font-size: 14px;">
-                                {% if expense.category == 'Food' or expense.category == 'Groceries' %}🍽️{% elif expense.category == 'Utilities' or expense.category == 'Rent' %}⚡{% elif expense.category == 'Transport' %}🚇{% elif expense.category == 'Entertainment' %}🎟️{% elif expense.category == 'Shopping' %}🛍️{% else %}🧾{% endif %}
-                            </div>
-                            <div>
-                                <div class="fw-bold text-dark">{{ expense.description|default:"Untitled Expense" }}</div>
-                                <div class="text-secondary" style="font-size: 11px;">UPI / Card • Verified</div>
-                            </div>
-                        </div>
-                    </td>
-                    <td>
-                        <span class="category-badge">{{ expense.category }}</span>
-                    </td>
-                    <td class="text-end fw-bold" style="color: #EF4444; font-size: 14px;">
-                        -₹{{ expense.amount|floatformat:2 }}
-                    </td>
-                    <td class="text-center">
-                        <div class="d-flex justify-content-center gap-2">
-                            <a href="{% url 'expense_edit' expense.pk %}" class="btn btn-sm btn-light text-secondary rounded p-1 px-2" title="Edit" style="font-size: 12px; background-color: #F8FAFC; border: 1px solid #E2E8F0;">✏️</a>
-                            <a href="{% url 'expense_delete' expense.pk %}" class="btn btn-sm btn-light text-danger rounded p-1 px-2" title="Delete" style="font-size: 12px; background-color: #FEF2F2; border: 1px solid #FECACA;">🗑️</a>
-                        </div>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="5" class="text-center py-5">
-                        <div class="text-secondary mb-2" style="font-size: 24px;">📭</div>
-                        <h6 class="fw-bold text-dark mb-1">No expenses found</h6>
-                        <p class="text-secondary" style="font-size: 13px;">Adjust your filters or add a new expense.</p>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
-    <!-- PAGINATION -->
-    {% if expenses.has_other_pages %}
-    <div class="d-flex justify-content-between align-items-center mb-5">
-        <div class="text-secondary" style="font-size: 12px;">
-            Showing <strong>{{ expenses.start_index }}-{{ expenses.end_index }}</strong> of <strong>{{ paginator.count }}</strong> expenses
+        <!-- Table headers styled as a list header (for consistent layout with rows) -->
+        <div class="list-panel-inner reveal-item" style="display:flex; padding: 0 56px 8px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #a1a1aa;">
+            <div class="rec-col-date">Date</div>
+            <div class="rec-col-desc">Description</div>
+            <div class="rec-col-cat">Category</div>
+            <div class="rec-col-amt">Amount</div>
+            <div class="rec-col-actions" style="width: 70px;"></div>
         </div>
-        <nav aria-label="Expense pagination">
-            <ul class="pagination pagination-sm mb-0">
+
+        <div class="rec-list">
+            {% for expense in expenses %}
+            <div class="rec-row reveal-item">
+                <div class="rec-col-date">{{ expense.date|date:"d M Y" }}</div>
+                <div class="rec-col-desc">
+                    <div class="rec-name">{{ expense.description|default:"Untitled Expense" }}</div>
+                    {% if expense.intent and expense.intent != 'Other' %}
+                    <div class="rec-intent">Intent: {{ expense.get_intent_display }}</div>
+                    {% endif %}
+                </div>
+                <div class="rec-col-cat">
+                    <span class="rec-badge">{{ expense.category }}</span>
+                </div>
+                <div class="rec-col-amt">
+                    <div class="rec-amount out">−₹{{ expense.amount|floatformat:2 }}</div>
+                </div>
+                <div class="rec-col-actions">
+                    <a href="{% url 'expense_edit' expense.pk %}" class="rec-action" title="Edit">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    </a>
+                    <a href="{% url 'expense_delete' expense.pk %}" class="rec-action del" title="Delete">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+                    </a>
+                </div>
+            </div>
+            {% empty %}
+            <div class="mm-empty reveal-item" style="padding: 60px 24px;">
+                <svg class="mm-empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 17H7A5 5 0 0 1 7 7h2"/><path d="M15 7h2a5 5 0 0 1 0 10h-2"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                <div class="mm-empty-title">No expenses found</div>
+                <div class="mm-empty-body">Adjust your filters or add a new expense.</div>
+                <a href="{% url 'expense_add' %}" class="mm-btn mm-btn-gold">+ Add Expense</a>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if expenses.has_other_pages %}
+        <div class="list-panel-inner reveal-item" style="padding-top: 20px; padding-bottom: 20px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.06); margin-top: 8px;">
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--mm-text-muted);">{{ expenses.start_index }}–{{ expenses.end_index }} of {{ paginator.count }}</span>
+            <div style="display: flex; gap: 4px;">
                 {% if expenses.has_previous %}
-                <li class="page-item"><a class="page-link" href="?page={{ expenses.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_date %}&date={{ selected_date }}{% endif %}">❮</a></li>
+                <a class="mm-btn mm-btn-ghost mm-btn-xs" href="?page={{ expenses.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_intent %}&intent={{ selected_intent }}{% endif %}{% if selected_date %}&date={{ selected_date }}{% endif %}">←</a>
                 {% endif %}
-                
                 {% for i in paginator.page_range %}
                     {% if expenses.number == i %}
-                        <li class="page-item active"><span class="page-link">{{ i }}</span></li>
+                    <span class="mm-btn mm-btn-ghost mm-btn-xs" style="color: var(--mm-text); border-color: rgba(255,255,255,0.2);">{{ i }}</span>
                     {% else %}
-                        <li class="page-item"><a class="page-link" href="?page={{ i }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_date %}&date={{ selected_date }}{% endif %}">{{ i }}</a></li>
+                    <a class="mm-btn mm-btn-ghost mm-btn-xs" href="?page={{ i }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_intent %}&intent={{ selected_intent }}{% endif %}{% if selected_date %}&date={{ selected_date }}{% endif %}">{{ i }}</a>
                     {% endif %}
                 {% endfor %}
-                
                 {% if expenses.has_next %}
-                <li class="page-item"><a class="page-link" href="?page={{ expenses.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_date %}&date={{ selected_date }}{% endif %}">❯</a></li>
+                <a class="mm-btn mm-btn-ghost mm-btn-xs" href="?page={{ expenses.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_intent %}&intent={{ selected_intent }}{% endif %}{% if selected_date %}&date={{ selected_date }}{% endif %}">→</a>
                 {% endif %}
-            </ul>
-        </nav>
-    </div>
-    {% endif %}
+            </div>
+        </div>
+        {% endif %}
 
-    <!-- CATEGORY DISTRIBUTION -->
-    <div class="bg-light p-4 rounded-4 mt-2">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <div>
-                <h6 class="fw-bold text-dark mb-1" style="font-size: 14px;">Category Distribution</h6>
-                <p class="text-secondary mb-0" style="font-size: 12px;">Visual proportion of ₹{{ total_amount|floatformat:2 }} spent across {{ active_baskets }} primary buckets.</p>
+        <!-- Category Distribution -->
+        {% if category_totals %}
+        <div class="reveal-item" style="padding: 28px 36px; border-top: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.02);">
+            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.15em; color: #a1a1aa; margin-bottom: 20px;">Category Distribution</div>
+            <div style="display:flex; width:100%; height:8px; border-radius:4px; overflow:hidden; background:rgba(255,255,255,0.06); margin-bottom:24px;">
+                {% for cat in category_totals %}
+                <div class="cat-seg cs-{{ forloop.counter }}" data-width="{{ cat.percentage }}" style="width:0;" data-tooltip="{{ cat.category }}: ₹{{ cat.total|floatformat:2 }} ({{ cat.percentage|floatformat:1 }}%)"></div>
+                {% endfor %}
             </div>
-            <div class="text-success fw-bold" style="font-size: 11px;">
-                Calculated dynamically
-            </div>
-        </div>
-        
-        <div class="d-flex w-100 mb-3 bg-white border" style="border-radius: 4px; overflow: hidden; height: 8px;">
-            {% for cat in category_totals %}
-            <div class="category-bar-segment cat-color-{{ forloop.counter }}{% if not forloop.last %} border-end border-white border-2{% endif %}" data-width="{{ cat.percentage }}"></div>
-            {% empty %}
-            <div class="category-bar-segment w-100 bg-secondary bg-opacity-25"></div>
-            {% endfor %}
-        </div>
-        
-        <div class="d-flex flex-wrap gap-4 mt-2">
-            {% for cat in category_totals %}
-            <div class="d-flex align-items-center">
-                <span class="cat-dot cat-color-{{ forloop.counter }}"></span>
-                <div>
-                    <div class="text-secondary" style="font-size: 10px;">{{ cat.category }}</div>
-                    <div class="fw-bold text-dark" style="font-size: 11px;">₹{{ cat.total|floatformat:2 }}</div>
+            <div style="display: flex; flex-wrap: wrap; gap: 24px;">
+                {% for cat in category_totals %}
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <span class="cat-dot cs-{{ forloop.counter }}"></span>
+                    <div>
+                        <div style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:#a1a1aa;">{{ cat.category }}</div>
+                        <div style="font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600; color:#fff;">₹{{ cat.total|floatformat:2 }}</div>
+                    </div>
                 </div>
+                {% endfor %}
             </div>
-            {% endfor %}
         </div>
+        {% endif %}
     </div>
 </div>
 
 <script>
-    // Apply data-width attributes to category bar segments (avoids Django tags inside inline CSS)
-    document.querySelectorAll('[data-width]').forEach(function(el) {
-        el.style.width = el.getAttribute('data-width') + '%';
+document.addEventListener("DOMContentLoaded", function() {
+    // Reveal animations on scroll
+    const panel = document.querySelector('.rec-panel');
+    const rows = document.querySelectorAll('.reveal-item');
+    rows.forEach((el, i) => {
+        el.style.transitionDelay = (0.05 + (i % 8) * 0.05) + 's';
     });
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+            } else {
+                entry.target.classList.remove('is-visible');
+            }
+        });
+    }, { root: null, rootMargin: '0px 0px -40px 0px', threshold: 0.1 });
+
+    if (panel) observer.observe(panel);
+    rows.forEach(el => observer.observe(el));
+
+    // Category distribution bar animations
+    setTimeout(() => {
+        document.querySelectorAll('[data-width]').forEach(function(el) {
+            el.style.width = el.getAttribute('data-width') + '%';
+        });
+    }, 100);
+});
 </script>
 {% endblock %}

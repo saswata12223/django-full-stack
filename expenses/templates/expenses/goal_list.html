@@ -1,0 +1,450 @@
+{% extends 'expenses/base.html' %}
+{% block title %}Goals — MoneyMitra{% endblock %}
+
+{% block content %}
+<style>
+    /* ── Hero ── */
+    .goals-hero {
+        padding: 40px 0 8px;
+        position: relative;
+        z-index: 2;
+    }
+    .goals-title {
+        font-size: 48px !important;
+        font-weight: 700;
+        letter-spacing: -0.04em;
+        line-height: 1.05;
+        background: linear-gradient(135deg, #ffffff 0%, #f3e3c3 55%, #DDA751 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    @media (max-width: 768px) { .goals-title { font-size: 36px !important; } }
+
+    /* ── Summary strip ── */
+    .goals-stat-row {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+        margin: 32px 0 48px;
+        max-width: 560px;
+    }
+    .goals-stat {
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        padding: 20px 24px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        transition: transform 0.3s ease, border-color 0.3s ease, background 0.3s ease;
+    }
+    .goals-stat:hover {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(221, 167, 81, 0.3);
+        transform: translateY(-4px);
+    }
+    .goals-stat-label {
+        font-size: 10px; font-weight: 700; letter-spacing: 0.14em;
+        text-transform: uppercase; color: #a1a1aa; margin-bottom: 8px;
+    }
+    .goals-stat-value {
+        font-size: 30px; font-weight: 700; letter-spacing: -0.03em; color: #fff; line-height: 1;
+    }
+    .goals-stat-value.gold { color: #DDA751; text-shadow: 0 0 18px rgba(221,167,81,0.35); }
+    .goals-stat-value.green { color: var(--mm-green); text-shadow: 0 0 18px rgba(34,197,94,0.3); }
+
+    /* ── Section label ── */
+    .goals-section-label {
+        display: flex; align-items: center; gap: 12px;
+        font-size: 11px; font-weight: 700; letter-spacing: 0.15em;
+        text-transform: uppercase; color: #a1a1aa; margin-bottom: 20px;
+    }
+    .goals-section-label::after {
+        content: ""; flex: 1; height: 1px;
+        background: linear-gradient(90deg, rgba(221,167,81,0.35), transparent);
+    }
+
+    /* ── Glass goal card ── */
+    .goal-col { position: relative; }
+    .goal-col.dropdown-open { z-index: 50; }
+
+    .goal-card-item {
+        position: relative;
+        background: linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.015) 100%);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 20px;
+        padding: 28px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255,255,255,0.05);
+        transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.35s ease, box-shadow 0.35s ease;
+        height: 100%;
+    }
+    .goal-card-item::before {
+        /* gold top hairline */
+        content: ""; position: absolute; top: 0; left: 24px; right: 24px; height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(221,167,81,0.55), transparent);
+        opacity: 0.5; transition: opacity 0.35s ease;
+    }
+    .goal-card-item:hover {
+        transform: translateY(-6px);
+        border-color: rgba(221, 167, 81, 0.28);
+        box-shadow: 0 18px 48px rgba(0, 0, 0, 0.4), 0 0 32px rgba(221, 167, 81, 0.08), inset 0 1px 0 rgba(255,255,255,0.08);
+    }
+    .goal-card-item:hover::before { opacity: 1; }
+    .goal-card-item.paused { opacity: 0.65; }
+    .goal-card-item.is-complete { opacity: 0.8; }
+    .goal-card-item.is-complete:hover { opacity: 1; }
+
+    /* soft shine sweep, clipped in its own layer so dropdowns aren't clipped */
+    .goal-shine {
+        position: absolute; inset: 0; border-radius: 20px; overflow: hidden; pointer-events: none;
+    }
+    .goal-shine::after {
+        content: ""; position: absolute; top: 0; left: -60%; width: 40%; height: 100%;
+        background: linear-gradient(105deg, transparent, rgba(255,255,255,0.06), transparent);
+        transform: skewX(-15deg);
+        transition: left 0.9s ease;
+    }
+    .goal-card-item:hover .goal-shine::after { left: 130%; }
+
+    .goal-name {
+        font-size: 18px; font-weight: 700; letter-spacing: -0.02em;
+        margin-bottom: 8px; color: #fff;
+    }
+    .goal-meta-mono {
+        font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--mm-text-muted);
+    }
+
+    /* ── Progress ── */
+    .goal-prog-track {
+        position: relative;
+        height: 6px;
+        background: rgba(255, 255, 255, 0.06);
+        border-radius: 6px;
+        overflow: hidden;
+        margin: 18px 0 12px;
+        box-shadow: inset 0 1px 2px rgba(0,0,0,0.4);
+    }
+    .goal-prog-fill {
+        position: relative;
+        height: 100%;
+        width: 0;
+        background: linear-gradient(90deg, #B67B29 0%, #DDA751 60%, #f3d08c 100%);
+        border-radius: 6px;
+        box-shadow: 0 0 10px rgba(221, 167, 81, 0.55);
+        transition: width 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+        overflow: hidden;
+    }
+    .goal-prog-fill::after {
+        content: ""; position: absolute; inset: 0;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.45), transparent);
+        transform: translateX(-100%);
+        animation: goal-shimmer 2.8s infinite ease-in-out;
+    }
+    .goal-prog-fill.done {
+        background: linear-gradient(90deg, #16a34a 0%, #22c55e 60%, #86efac 100%);
+        box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+    }
+    @keyframes goal-shimmer {
+        0% { transform: translateX(-100%); }
+        60%, 100% { transform: translateX(100%); }
+    }
+
+    .goal-amount {
+        font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 600; color: #fff;
+    }
+    .goal-remaining {
+        margin-top: 14px; padding-top: 14px;
+        border-top: 1px solid rgba(255,255,255,0.06);
+        font-size: 12px; color: var(--mm-text-muted);
+    }
+
+    /* ── Status pills ── */
+    .status-pill {
+        display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px;
+        border-radius: 20px; font-size: 11px; font-weight: 700;
+        border: 1px solid; letter-spacing: 0.04em;
+        backdrop-filter: blur(6px);
+    }
+    .status-pill::before {
+        content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor;
+        box-shadow: 0 0 6px currentColor;
+    }
+    .status-active::before { animation: pill-pulse 2s infinite ease-in-out; }
+    @keyframes pill-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+    .status-active { color: var(--mm-blue); border-color: rgba(59,130,246,0.3); background: rgba(59,130,246,0.08); }
+    .status-completed { color: var(--mm-green); border-color: rgba(34,197,94,0.3); background: rgba(34,197,94,0.08); }
+    .status-paused { color: var(--mm-gold); border-color: rgba(212,175,55,0.3); background: rgba(212,175,55,0.08); }
+    .status-cancelled { color: var(--mm-red); border-color: rgba(255,69,58,0.3); background: rgba(255,69,58,0.08); }
+
+    /* ── Dropdown glass ── */
+    .goal-card-item .dropdown-menu {
+        background: rgba(18, 18, 22, 0.85) !important;
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        border-radius: 12px !important;
+        box-shadow: 0 16px 40px rgba(0,0,0,0.5) !important;
+        padding: 6px !important;
+    }
+    .goal-card-item .dropdown-item { border-radius: 8px; transition: background 0.2s ease; }
+    .goal-card-item .dropdown-item:hover { background: rgba(255,255,255,0.06) !important; }
+
+    /* ── Empty state ── */
+    .goals-empty {
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 24px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
+
+    /* ── Buttons (premium, same as dashboard) ── */
+    .mm-btn-ghost {
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: #ffffff !important;
+        transition: all 0.3s ease !important;
+    }
+    .mm-btn-ghost:hover {
+        background: rgba(255, 255, 255, 0.1) !important;
+        border-color: rgba(255, 255, 255, 0.2) !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+    }
+    .mm-btn-primary {
+        background: linear-gradient(135deg, #DDA751 0%, #B67B29 100%) !important;
+        border: none !important;
+        color: #000000 !important;
+        font-weight: 600 !important;
+        box-shadow: 0 4px 16px rgba(221, 167, 81, 0.4) !important;
+        transition: all 0.3s ease !important;
+    }
+    .mm-btn-primary:hover {
+        box-shadow: 0 6px 20px rgba(221, 167, 81, 0.6) !important;
+        transform: translateY(-2px) !important;
+    }
+
+    /* ── Scroll reveal ── */
+    .reveal-item {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: opacity 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .reveal-item.is-visible {
+        opacity: 1;
+        transform: none;
+    }
+
+    /* ── Background animations ── */
+    @keyframes float-glow-1 {
+        0% { opacity: 0.4; transform: scale(1) translate(0, 0); }
+        50% { opacity: 1; transform: scale(1.15) translate(30px, -20px); }
+        100% { opacity: 0.4; transform: scale(1) translate(0, 0); }
+    }
+    @keyframes float-glow-2 {
+        0% { opacity: 0.4; transform: scale(1) translate(0, 0); }
+        50% { opacity: 1; transform: scale(1.2) translate(-30px, 20px); }
+        100% { opacity: 0.4; transform: scale(1) translate(0, 0); }
+    }
+    @keyframes float-arc-1 {
+        0% { opacity: 0.6; transform: scale(1) rotate(0deg) translate(0, 0); }
+        50% { opacity: 1; transform: scale(1.05) rotate(5deg) translate(20px, 15px); }
+        100% { opacity: 0.6; transform: scale(1) rotate(0deg) translate(0, 0); }
+    }
+    @keyframes float-arc-2 {
+        0% { opacity: 0.6; transform: scale(1) rotate(0deg) translate(0, 0); }
+        50% { opacity: 1; transform: scale(1.05) rotate(-5deg) translate(-25px, -15px); }
+        100% { opacity: 0.6; transform: scale(1) rotate(0deg) translate(0, 0); }
+    }
+    .bg-glow-1 { animation: float-glow-1 12s infinite ease-in-out; }
+    .bg-glow-2 { animation: float-glow-2 15s infinite ease-in-out; }
+    .bg-arc-1 { animation: float-arc-1 14s infinite ease-in-out; }
+    .bg-arc-2 { animation: float-arc-2 18s infinite ease-in-out; }
+    .bg-arc-3 { animation: float-arc-1 22s infinite ease-in-out reverse; }
+
+    @media (prefers-reduced-motion: reduce) {
+        .bg-glow-1, .bg-glow-2, .bg-arc-1, .bg-arc-2, .bg-arc-3,
+        .goal-prog-fill::after, .status-active::before { animation: none; }
+        .reveal-item { opacity: 1; transform: none; transition: none; }
+    }
+</style>
+
+<div class="mm-page" style="position: relative; z-index: 1;">
+    <!-- Cinematic Orbital Background -->
+    <div style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; overflow: hidden; z-index: -1; pointer-events: none; background-color: #030405;">
+        <div class="bg-glow-1" style="position: absolute; top: 30%; left: -20%; width: 50vw; height: 50vw; border-radius: 50%; background: radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%); filter: blur(100px);"></div>
+        <div class="bg-glow-2" style="position: absolute; top: -10%; right: -20%; width: 60vw; height: 60vw; border-radius: 50%; background: radial-gradient(circle, rgba(212,175,55,0.08) 0%, transparent 70%); filter: blur(100px);"></div>
+        <div class="bg-arc-1" style="position: absolute; top: 25%; left: -35vw; width: 70vw; height: 70vw; border-radius: 50%; border: 1px solid rgba(59,130,246,0.35); box-shadow: inset 0 0 40px rgba(59,130,246,0.12), 0 0 60px rgba(59,130,246,0.18);"></div>
+        <div class="bg-arc-2" style="position: absolute; top: -25vh; right: -15vw; width: 60vw; height: 60vw; border-radius: 50%; border: 1px solid rgba(212,175,55,0.4); box-shadow: inset 0 0 40px rgba(212,175,55,0.15), 0 0 60px rgba(212,175,55,0.2);"></div>
+        <div class="bg-arc-3" style="position: absolute; top: -15vh; right: -25vw; width: 80vw; height: 80vw; border-radius: 50%; border: 1px solid rgba(212,175,55,0.2); box-shadow: inset 0 0 20px rgba(212,175,55,0.05), 0 0 30px rgba(212,175,55,0.1);"></div>
+        <div style="position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, transparent 30%, rgba(3,4,5,0.8) 100%);"></div>
+    </div>
+
+    <!-- Hero -->
+    <div class="goals-hero">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end">
+            <div>
+                <div class="mm-page-eyebrow">Plan</div>
+                <h1 class="mm-page-title goals-title">Goals</h1>
+                <p class="mm-page-subtitle">Give your money somewhere to go.</p>
+            </div>
+            <div class="mt-3 mt-md-0">
+                <a href="{% url 'goal_add' %}" class="mm-btn mm-btn-primary">+ Create Goal</a>
+            </div>
+        </div>
+
+        {% if has_goals %}
+        <div class="goals-stat-row">
+            <div class="goals-stat">
+                <div class="goals-stat-label">Active</div>
+                <div class="goals-stat-value gold">{{ active_goals|length }}</div>
+            </div>
+            <div class="goals-stat">
+                <div class="goals-stat-label">Completed</div>
+                <div class="goals-stat-value green">{{ completed_goals|length }}</div>
+            </div>
+        </div>
+        {% else %}
+        <div style="height: 40px;"></div>
+        {% endif %}
+    </div>
+
+    {% if has_goals %}
+        {% if active_goals %}
+        <div class="mm-section">
+            <div class="goals-section-label">Active Goals</div>
+            <div class="row g-4">
+                {% for goal in active_goals %}
+                <div class="col-md-6 goal-col">
+                    <div class="goal-card-item {% if goal.status == 'Paused' %}paused{% endif %}">
+                        <div class="goal-shine"></div>
+                        <div class="d-flex justify-content-between align-items-start mb-3" style="position: relative;">
+                            <div>
+                                <div class="goal-name">{{ goal.name }}</div>
+                                <div style="display:flex;align-items:center;gap:10px;">
+                                    <span class="status-pill status-{{ goal.status|lower }}">{{ goal.status }}</span>
+                                    {% if goal.deadline %}
+                                    <span class="goal-meta-mono">{{ goal.deadline|date:"d M Y" }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="dropdown">
+                                <button class="mm-btn mm-btn-ghost mm-btn-xs" type="button" data-bs-toggle="dropdown">···</button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="{% url 'goal_edit' goal.pk %}">Edit</a></li>
+                                    <li><a class="dropdown-item" style="color:var(--mm-red)!important;" href="{% url 'goal_delete' goal.pk %}">Delete</a></li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="goal-prog-track">
+                            <div class="goal-prog-fill {% if goal.progress_percentage >= 100 %}done{% endif %}" data-width="{{ goal.progress_percentage }}"></div>
+                        </div>
+
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <span class="goal-meta-mono" style="font-size:12px;">{{ goal.progress_percentage }}% complete</span>
+                            <span class="goal-amount">
+                                ₹{{ goal.current_amount|floatformat:2 }}
+                                <span style="color:var(--mm-text-muted);font-weight:400;"> / ₹{{ goal.target_amount|floatformat:2 }}</span>
+                            </span>
+                        </div>
+                        <div class="goal-remaining">
+                            ₹{{ goal.remaining_amount|floatformat:2 }} remaining
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if completed_goals %}
+        <div class="mm-section">
+            <div class="goals-section-label">Completed Milestones</div>
+            <div class="row g-4">
+                {% for goal in completed_goals %}
+                <div class="col-md-6 goal-col">
+                    <div class="goal-card-item is-complete">
+                        <div class="goal-shine"></div>
+                        <div class="d-flex justify-content-between align-items-start mb-3" style="position: relative;">
+                            <div>
+                                <div class="goal-name" style="font-size:16px;">{{ goal.name }}</div>
+                                <span class="status-pill status-completed">Completed</span>
+                            </div>
+                            <div class="dropdown">
+                                <button class="mm-btn mm-btn-ghost mm-btn-xs" type="button" data-bs-toggle="dropdown">···</button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="{% url 'goal_edit' goal.pk %}">Edit</a></li>
+                                    <li><a class="dropdown-item" style="color:var(--mm-red)!important;" href="{% url 'goal_delete' goal.pk %}">Delete</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="goal-prog-track">
+                            <div class="goal-prog-fill done" data-width="100"></div>
+                        </div>
+                        <div class="goal-meta-mono" style="font-size:12px;margin-top:6px;">
+                            Saved ₹{{ goal.target_amount|floatformat:2 }}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+    {% else %}
+        <div class="mm-empty goals-empty">
+            <svg class="mm-empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <div class="mm-empty-title">No goals yet</div>
+            <div class="mm-empty-body">Whether you're saving for an emergency fund, a trip, or something big — give your money a destination.</div>
+            <a href="{% url 'goal_add' %}" class="mm-btn mm-btn-primary">Create your first goal</a>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // 1. Animate progress bars when they come into view
+    const fillObserver = new IntersectionObserver((entries, obs) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const el = entry.target;
+                setTimeout(() => {
+                    el.style.width = Math.min(parseFloat(el.getAttribute('data-width')) || 0, 100) + '%';
+                }, 250);
+                obs.unobserve(el);
+            }
+        });
+    }, { threshold: 0.2 });
+    document.querySelectorAll('.goal-prog-fill[data-width]').forEach(el => fillObserver.observe(el));
+
+    // 2. Reveal on scroll (same as dashboard)
+    const revealElements = document.querySelectorAll('.goals-hero, .goals-stat-row, .goals-section-label, .goal-col, .goals-empty');
+    revealElements.forEach((el, index) => {
+        el.classList.add('reveal-item');
+        el.style.transitionDelay = ((index % 3) * 0.12) + 's';
+    });
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+            } else {
+                entry.target.classList.remove('is-visible');
+            }
+        });
+    }, { root: null, rootMargin: '0px 0px -40px 0px', threshold: 0.1 });
+    revealElements.forEach(el => observer.observe(el));
+
+    // 3. Keep open dropdown above neighbouring glass cards
+    document.querySelectorAll('.goal-col .dropdown').forEach(dd => {
+        const col = dd.closest('.goal-col');
+        dd.addEventListener('show.bs.dropdown', () => col.classList.add('dropdown-open'));
+        dd.addEventListener('hidden.bs.dropdown', () => col.classList.remove('dropdown-open'));
+    });
+});
+</script>
+{% endblock %}

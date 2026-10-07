@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 200">
+  <g transform="translate(20, 0)">
+    <path d="M 40 160 L 40 80 L 100 140 L 160 60 L 160 160" fill="none" stroke="#22C55E" stroke-width="24" stroke-linejoin="round" stroke-linecap="round"/>
+    <path d="M 160 60 C 160 20 120 20 120 60 C 120 100 160 100 160 60 Z" fill="#3B82F6"/>
+  </g>
+  <text x="220" y="140" font-family="Manrope, system-ui, sans-serif" font-weight="700" font-size="100" fill="#0F172A">MoneyMitra</text>
+</svg>

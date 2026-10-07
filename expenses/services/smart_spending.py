@@ -70,82 +70,83 @@ def generate_smart_insights(user):
                 'type': 'success'
             })
 
+    # Intent Breakdown
+    intent_breakdown = curr_expenses.values('intent').annotate(total=Sum('amount')).order_by('-total')
+    intent_list = []
+    for idx, ib in enumerate(intent_breakdown, 1):
+        pct = (ib['total'] / total_curr_expense) * Decimal('100.00') if total_curr_expense > Decimal('0') else Decimal('0')
+        intent_name = ib['intent'] if ib['intent'] else 'Uncategorized'
+        intent_list.append({
+            'rank': idx,
+            'intent': intent_name,
+            'amount': ib['total'],
+            'percentage': pct
+        })
+
     # Category Breakdown
     cat_breakdown = curr_expenses.values('category').annotate(total=Sum('amount')).order_by('-total')
     breakdown_list = []
-    for cb in cat_breakdown:
+    for idx, cb in enumerate(cat_breakdown, 1):
         pct = (cb['total'] / total_curr_expense) * Decimal('100.00') if total_curr_expense > Decimal('0') else Decimal('0')
         breakdown_list.append({
+            'rank': idx,
             'category': cb['category'],
             'amount': cb['total'],
             'percentage': pct
         })
-        
+
+    insights = []
+    
+    # Month over Month Insight
+    if total_prev_expense == Decimal('0.00'):
+        insights.append({
+            'title': 'Spending Comparison',
+            'explanation': "More history is needed for a month-over-month comparison."
+        })
+    else:
+        diff = total_curr_expense - total_prev_expense
+        pct_change = (diff / total_prev_expense) * Decimal('100.00')
+        if diff > 0:
+            insights.append({
+                'title': 'Spending Comparison',
+                'explanation': f"Spending increased by {pct_change:.0f}% compared with the previous month."
+            })
+        elif diff < 0:
+            insights.append({
+                'title': 'Spending Comparison',
+                'explanation': f"Spending decreased by {abs(pct_change):.0f}% compared with the previous month."
+            })
+        else:
+            insights.append({
+                'title': 'Spending Comparison',
+                'explanation': "Spending remained stable compared with the previous month."
+            })
+
+    # Category Insight
     if breakdown_list:
         top_cat = breakdown_list[0]
         insights.append({
-            'title': 'Largest Spending Category',
-            'icon': '💡',
-            'explanation': f"{top_cat['category']} is currently your largest expense category. Reviewing your recent {top_cat['category'].lower()} expenses may help identify opportunities to reduce unnecessary spending.",
-            'value': f"₹{top_cat['amount']} ({top_cat['percentage']:.1f}%)",
-            'type': 'info'
+            'title': 'Top Category',
+            'explanation': f"{top_cat['category']} was your largest spending category this month, representing {top_cat['percentage']:.0f}% of your recorded spending."
+        })
+
+    # Intent Insight
+    want_spending = next((i for i in intent_list if i['intent'] == 'Want'), None)
+    if want_spending:
+        insights.append({
+            'title': 'Want-based Spending',
+            'explanation': f"Want-based spending accounted for {want_spending['percentage']:.0f}% of your recorded expenses."
         })
         
-        # High spending categories
-        for cat in breakdown_list:
-            if cat['percentage'] >= 30 and cat['category'] != top_cat['category']:
-                insights.append({
-                    'title': 'Spending Pattern',
-                    'icon': '🎯',
-                    'explanation': f"{cat['category']} represents {cat['percentage']:.0f}% of your recorded expenses this month. Reviewing recent transactions can help identify recurring purchases.",
-                    'type': 'warning'
-                })
-
-    # Income vs Expenses
-    if total_curr_income > total_curr_expense:
+    need_spending = next((i for i in intent_list if i['intent'] == 'Need'), None)
+    if need_spending:
         insights.append({
-            'title': 'Income vs Expenses',
-            'icon': '✅',
-            'explanation': "Your recorded income currently exceeds your recorded expenses.",
-            'type': 'success'
-        })
-        insights.append({
-            'title': 'Savings Tip',
-            'icon': '💰',
-            'explanation': "Your recorded income is currently higher than your expenses. You could consider setting aside part of the remaining amount toward a financial goal.",
-            'type': 'success'
-        })
-    elif total_curr_expense > total_curr_income:
-        insights.append({
-            'title': 'Income vs Expenses',
-            'icon': '⚠️',
-            'explanation': "Your recorded expenses currently exceed your recorded income.",
-            'type': 'warning'
-        })
-    elif total_curr_income == total_curr_expense and total_curr_income > 0:
-        insights.append({
-            'title': 'Income vs Expenses',
-            'icon': '⚖️',
-            'explanation': "Your recorded income and expenses are currently equal.",
-            'type': 'info'
+            'title': 'Need-based Spending',
+            'explanation': f"Need-based spending accounted for {need_spending['percentage']:.0f}% of your recorded expenses."
         })
         
-    # Recent Spending Activity
-    recent_exps = Expense.objects.filter(user=user).order_by('-date', '-created_at')[:5]
-    if recent_exps.exists() and total_curr_expense > 0:
-        avg_expense = total_curr_expense / Decimal(curr_expenses.count()) if curr_expenses.count() > 0 else Decimal('0')
-        for exp in recent_exps:
-            if avg_expense > 0 and exp.amount > (avg_expense * Decimal('3.0')): 
-                insights.append({
-                    'title': 'Recent Large Transaction',
-                    'icon': '🔍',
-                    'explanation': f"Your recent expense of ₹{exp.amount} for '{exp.description}' is one of your larger recent transactions.",
-                    'type': 'info'
-                })
-                break 
-
-    # limit insights
-    insights = insights[:6]
+    # Largest Individual Expenses
+    largest_expenses = curr_expenses.order_by('-amount')[:5]
 
     return {
         'is_empty': False,
@@ -156,6 +157,7 @@ def generate_smart_insights(user):
             'period': now.strftime('%B %Y')
         },
         'breakdown': breakdown_list,
+        'intent_breakdown': intent_list,
         'insights': insights,
-        'recent_expenses': recent_exps
+        'largest_expenses': largest_expenses
     }

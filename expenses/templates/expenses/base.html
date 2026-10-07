@@ -4,117 +4,1234 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DhanTrack</title>
+    <title>{% block title %}MoneyMitra — Your money companion{% endblock %}</title>
+    <meta name="description" content="MoneyMitra — Your money companion. Track, understand, and grow your personal finances.">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { background-color: #f8f9fa; }
-        .navbar-brand { font-weight: bold; }
-        
-        /* Form styling */
-        input[type="text"], input[type="password"], input[type="email"], input[type="number"], select, textarea {
-            display: block;
-            width: 100%;
-            padding: .375rem .75rem;
-            font-size: 1rem;
-            font-weight: 400;
-            line-height: 1.5;
-            color: #212529;
-            background-color: #fff;
-            background-clip: padding-box;
-            border: 1px solid #ced4da;
-            border-radius: .375rem;
-            transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
-            margin-bottom: 0.5rem;
+        /* ============================================================
+           MONEYMITRA — PHASE 10R DESIGN SYSTEM
+           Premium Black + Liquid Glass + Apple-Inspired Minimalism
+        ============================================================ */
+
+        :root {
+            /* Force native dark UI (dropdowns, calendars) */
+            color-scheme: dark;
+
+            /* Core Backgrounds */
+            --mm-bg:            #030405;
+            --mm-bg-elevated:   #07090c;
+
+            /* Glass Surfaces */
+            --mm-glass-1:       rgba(255,255,255,0.025);
+            --mm-glass-2:       rgba(255,255,255,0.04);
+            --mm-glass-3:       rgba(255,255,255,0.06);
+            --mm-glass-hover:   rgba(255,255,255,0.055);
+
+            /* Borders */
+            --mm-border:        rgba(255,255,255,0.08);
+            --mm-border-strong: rgba(255,255,255,0.12);
+            --mm-border-subtle: rgba(255,255,255,0.04);
+
+            /* Text */
+            --mm-text:          #F5F5F7;
+            --mm-text-secondary:#A1A1AA;
+            --mm-text-muted:    #71717A;
+
+            /* Accents */
+            --mm-blue:          #3B82F6;
+            --mm-green:         #22C55E;
+            --mm-gold:          #D4AF37;
+            --mm-red:           #FF453A;
+
+            /* Semantic */
+            --mm-positive:      var(--mm-green);
+            --mm-negative:      var(--mm-red);
+            --mm-accent:        var(--mm-blue);
+            --mm-premium:       var(--mm-gold);
+
+            /* Shadows */
+            --mm-shadow-sm:     0 4px 16px rgba(0,0,0,0.3);
+            --mm-shadow-md:     0 12px 40px rgba(0,0,0,0.4);
+            --mm-shadow-lg:     0 24px 64px rgba(0,0,0,0.5);
+
+            /* Radius */
+            --mm-r-xs:  4px;
+            --mm-r-sm:  8px;
+            --mm-r-md:  12px;
+            --mm-r-lg:  16px;
+            --mm-r-xl:  24px;
+
+            /* Typography */
+            --mm-font-ui:    'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+            --mm-font-mono:  'IBM Plex Mono', 'Courier New', monospace;
         }
-        .errorlist {
-            color: #dc3545;
-            font-size: 0.875em;
+
+        /* ── Premium Global Scrollbar ── */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--mm-bg);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--mm-bg);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* ── Reset ── */
+        *, *::before, *::after { box-sizing: border-box; }
+        
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--mm-bg);
+            color: var(--mm-text);
+            font-family: var(--mm-font-ui);
+            font-size: 15px;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            min-height: 100vh;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--mm-font-ui);
+            font-weight: 700;
+            color: var(--mm-text);
+            letter-spacing: -0.025em;
+            line-height: 1.2;
+        }
+
+        /* ── Typography utilities ── */
+        .mm-mono { font-family: var(--mm-font-mono) !important; }
+        .mm-text-primary { color: var(--mm-text) !important; }
+        .mm-text-secondary { color: var(--mm-text-secondary) !important; }
+        .mm-text-muted { color: var(--mm-text-muted) !important; }
+        .mm-text-positive { color: var(--mm-positive) !important; }
+        .mm-text-negative { color: var(--mm-negative) !important; }
+        .mm-text-gold { color: var(--mm-gold) !important; }
+        .mm-text-blue { color: var(--mm-blue) !important; }
+
+        /* Override Bootstrap text utilities */
+        .text-secondary { color: var(--mm-text-secondary) !important; }
+        .text-muted { color: var(--mm-text-muted) !important; }
+        .text-success { color: var(--mm-positive) !important; }
+        .text-danger { color: var(--mm-negative) !important; }
+        .text-primary { color: var(--mm-blue) !important; }
+        .text-white { color: var(--mm-text) !important; }
+        .text-dark { color: var(--mm-text) !important; }
+
+        /* ── Glass surface system ── */
+        .mm-glass {
+            background: var(--mm-glass-2);
+            border: 1px solid var(--mm-border);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: var(--mm-shadow-md);
+        }
+        .mm-glass-heavy {
+            background: var(--mm-glass-3);
+            border: 1px solid var(--mm-border-strong);
+            backdrop-filter: blur(32px);
+            -webkit-backdrop-filter: blur(32px);
+            box-shadow: var(--mm-shadow-lg);
+        }
+        .mm-surface {
+            background-color: var(--mm-bg-elevated);
+            border: 1px solid var(--mm-border);
+        }
+        .mm-surface-raised {
+            background: var(--mm-glass-1);
+            border: 1px solid var(--mm-border-subtle);
+        }
+
+        /* ── Layout sections ── */
+        .mm-section {
+            margin-bottom: 48px;
+        }
+        .mm-section-header {
+            margin-bottom: 24px;
+        }
+        .mm-section-label {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--mm-text-muted);
+            margin-bottom: 6px;
+        }
+        .mm-section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--mm-text);
+            letter-spacing: -0.02em;
+        }
+
+        /* ── Stat display ── */
+        .mm-stat {
+            padding: 24px;
+            border-radius: var(--mm-r-lg);
+            background: var(--mm-glass-1);
+            border: 1px solid var(--mm-border);
+            transition: border-color 0.2s;
+        }
+        .mm-stat:hover { border-color: var(--mm-border-strong); }
+        .mm-stat-label {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--mm-text-muted);
+            margin-bottom: 12px;
+        }
+        .mm-stat-value {
+            font-family: var(--mm-font-mono);
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--mm-text);
+            letter-spacing: -0.03em;
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+        .mm-stat-sub {
+            font-size: 12px;
+            color: var(--mm-text-muted);
+        }
+
+        /* ── Buttons ── */
+        .mm-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 10px 20px;
+            font-family: var(--mm-font-ui);
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: var(--mm-r-sm);
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+            transition: opacity 0.15s ease, transform 0.15s ease, background-color 0.15s ease;
+            white-space: nowrap;
+        }
+        .mm-btn:hover { text-decoration: none; opacity: 0.85; transform: translateY(-1px); }
+        .mm-btn:active { transform: translateY(0); }
+
+        .mm-btn-primary {
+            background-color: var(--mm-text);
+            color: var(--mm-bg);
+        }
+        .mm-btn-primary:hover { color: var(--mm-bg); background-color: #e8e8ea; }
+
+        .mm-btn-ghost {
+            background: transparent;
+            color: var(--mm-text-secondary);
+            border: 1px solid var(--mm-border);
+        }
+        .mm-btn-ghost:hover { color: var(--mm-text); border-color: var(--mm-border-strong); background: var(--mm-glass-1); }
+
+        .mm-btn-danger {
+            background: rgba(255, 69, 58, 0.12);
+            color: var(--mm-red);
+            border: 1px solid rgba(255, 69, 58, 0.2);
+        }
+        .mm-btn-danger:hover { background: rgba(255, 69, 58, 0.2); color: var(--mm-red); }
+
+        .mm-btn-sm { padding: 7px 14px; font-size: 13px; }
+        .mm-btn-xs { padding: 5px 10px; font-size: 12px; }
+
+        /* Bootstrap btn overrides */
+        .btn-primary {
+            background-color: var(--mm-text) !important;
+            color: var(--mm-bg) !important;
+            border: none !important;
+            font-family: var(--mm-font-ui);
+            font-weight: 600;
+            border-radius: var(--mm-r-sm) !important;
+        }
+        .btn-primary:hover { opacity: 0.88; color: var(--mm-bg) !important; }
+
+        .btn-outline-secondary {
+            background: transparent !important;
+            color: var(--mm-text-secondary) !important;
+            border: 1px solid var(--mm-border) !important;
+            font-family: var(--mm-font-ui);
+            font-weight: 600;
+            border-radius: var(--mm-r-sm) !important;
+        }
+        .btn-outline-secondary:hover {
+            color: var(--mm-text) !important;
+            border-color: var(--mm-border-strong) !important;
+            background: var(--mm-glass-1) !important;
+        }
+
+        .btn-light, .btn-white, .btn-bg-dark {
+            background: var(--mm-glass-2) !important;
+            color: var(--mm-text-secondary) !important;
+            border: 1px solid var(--mm-border) !important;
+            font-weight: 600;
+            border-radius: var(--mm-r-sm) !important;
+        }
+        .btn-light:hover, .btn-white:hover {
+            color: var(--mm-text) !important;
+            border-color: var(--mm-border-strong) !important;
+        }
+
+        /* ── Inputs ── */
+        .mm-input {
+            width: 100%;
+            padding: 11px 14px;
+            font-family: var(--mm-font-ui);
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--mm-text);
+            background: var(--mm-glass-1);
+            border: 1px solid var(--mm-border);
+            border-radius: var(--mm-r-sm);
+            outline: none;
+            transition: border-color 0.15s ease, background 0.15s ease;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        .mm-input::placeholder { color: var(--mm-text-muted); }
+        .mm-input:focus {
+            border-color: var(--mm-border-strong);
+            background: var(--mm-glass-2);
+            box-shadow: 0 0 0 3px rgba(255,255,255,0.04);
+        }
+        .mm-input option {
+            background-color: #1a1c20;
+            color: var(--mm-text);
+        }
+        .mm-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            color: var(--mm-text-secondary);
+            margin-bottom: 7px;
+            text-transform: uppercase;
+        }
+        .mm-field { margin-bottom: 20px; }
+        .mm-helptext {
+            font-size: 12px;
+            color: var(--mm-text-muted);
+            margin-top: 5px;
+        }
+        .mm-errorlist {
+            font-size: 12px;
+            color: var(--mm-red);
             list-style: none;
-            padding-left: 0;
-            margin-bottom: 0.5rem;
-            font-weight: bold;
+            padding: 0;
+            margin: 5px 0 0;
+            font-weight: 600;
+        }
+
+        /* Override Bootstrap form controls */
+        .form-control, .form-select, input[type="text"], input[type="password"],
+        input[type="email"], input[type="number"], input[type="date"],
+        input[type="url"], textarea, select {
+            background-color: var(--mm-glass-1) !important;
+            border: 1px solid var(--mm-border) !important;
+            border-radius: var(--mm-r-sm) !important;
+            color: var(--mm-text) !important;
+            font-family: var(--mm-font-ui) !important;
+            font-size: 14px !important;
+            padding: 11px 14px !important;
+        }
+        .form-control:focus, .form-select:focus, input:focus, select:focus, textarea:focus {
+            border-color: var(--mm-border-strong) !important;
+            background-color: var(--mm-glass-2) !important;
+            color: var(--mm-text) !important;
+            box-shadow: 0 0 0 3px rgba(255,255,255,0.04) !important;
+            outline: none !important;
+        }
+        .form-control::placeholder, input::placeholder, textarea::placeholder {
+            color: var(--mm-text-muted) !important;
+        }
+        .form-label {
+            color: var(--mm-text-secondary) !important;
+            font-size: 12px !important;
+            font-weight: 600 !important;
+            letter-spacing: 0.04em !important;
+            text-transform: uppercase !important;
+            margin-bottom: 7px !important;
+        }
+        .form-select option {
+            background-color: #0f1117;
+            color: var(--mm-text);
+        }
+        select option {
+            background-color: #0f1117;
+            color: var(--mm-text);
+        }
+        .form-text { color: var(--mm-text-muted) !important; font-size: 12px !important; }
+        .form-check-input { border-color: var(--mm-border) !important; background-color: var(--mm-glass-1) !important; }
+        .form-check-input:checked { background-color: var(--mm-blue) !important; border-color: var(--mm-blue) !important; }
+
+        /* ── Table ── */
+        .mm-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .mm-table thead th {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--mm-text-muted);
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--mm-border);
+            text-align: left;
+            white-space: nowrap;
+        }
+        .mm-table tbody td {
+            padding: 16px;
+            border-bottom: 1px solid var(--mm-border-subtle);
+            font-size: 14px;
+            vertical-align: middle;
+            color: var(--mm-text);
+        }
+        .mm-table tbody tr:last-child td { border-bottom: none; }
+        .mm-table tbody tr { transition: background 0.12s ease; }
+        .mm-table tbody tr:hover { background: var(--mm-glass-1); }
+
+        /* Bootstrap table override */
+        .table {
+            color: var(--mm-text) !important;
+            --bs-table-bg: transparent;
+            --bs-table-hover-bg: var(--mm-glass-1);
+        }
+        .table thead th {
+            font-size: 11px !important;
+            font-weight: 600 !important;
+            letter-spacing: 0.1em !important;
+            text-transform: uppercase !important;
+            color: var(--mm-text-muted) !important;
+            border-color: var(--mm-border) !important;
+            background: transparent !important;
+        }
+        .table tbody td { border-color: var(--mm-border-subtle) !important; }
+        .table tbody tr:last-child td { border-bottom: none !important; }
+
+        /* ── Badge ── */
+        .mm-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            border: 1px solid;
+        }
+        .mm-badge-positive {
+            color: var(--mm-green);
+            background: rgba(34, 197, 94, 0.08);
+            border-color: rgba(34, 197, 94, 0.2);
+        }
+        .mm-badge-negative {
+            color: var(--mm-red);
+            background: rgba(255, 69, 58, 0.08);
+            border-color: rgba(255, 69, 58, 0.2);
+        }
+        .mm-badge-neutral {
+            color: var(--mm-text-muted);
+            background: var(--mm-glass-1);
+            border-color: var(--mm-border);
+        }
+        .mm-badge-gold {
+            color: var(--mm-gold);
+            background: rgba(212, 175, 55, 0.08);
+            border-color: rgba(212, 175, 55, 0.2);
+        }
+        .mm-badge-blue {
+            color: var(--mm-blue);
+            background: rgba(59, 130, 246, 0.08);
+            border-color: rgba(59, 130, 246, 0.2);
+        }
+
+        /* ── Progress ── */
+        .mm-progress-track {
+            height: 3px;
+            background: var(--mm-border);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .mm-progress-fill {
+            height: 100%;
+            background: var(--mm-text-secondary);
+            border-radius: 2px;
+            transition: width 0.5s ease;
+        }
+        .mm-progress-fill.positive { background: var(--mm-green); }
+        .mm-progress-fill.gold { background: var(--mm-gold); }
+
+        /* ── Divider ── */
+        .mm-divider {
+            border: none;
+            border-top: 1px solid var(--mm-border);
+            margin: 32px 0;
+        }
+
+        /* ── Navigation (Global Shell) ── */
+        .mm-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            height: 60px;
+            background: rgba(3, 4, 5, 0.82);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border-bottom: 1px solid var(--mm-border);
+            display: flex;
+            align-items: center;
+            padding: 0 28px;
+        }
+        .mm-nav-inner {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            gap: 0;
+        }
+        .mm-nav-brand {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            margin-right: 36px;
+            flex-shrink: 0;
+        }
+        .mm-nav-brand img { height: 28px; width: auto; }
+        .mm-nav-links {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            flex: 1;
+        }
+        .mm-nav-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 13px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--mm-text-secondary);
+            text-decoration: none;
+            border-radius: var(--mm-r-sm);
+            transition: color 0.15s, background 0.15s;
+            white-space: nowrap;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+        }
+        .mm-nav-link:hover { color: var(--mm-text); background: var(--mm-glass-1); text-decoration: none; }
+        .mm-nav-link.active {
+            color: var(--mm-text);
+            background: var(--mm-glass-2);
+            border: 1px solid var(--mm-border);
+            font-weight: 600;
+        }
+        .mm-nav-link svg { opacity: 0.7; }
+        .mm-nav-link:hover svg, .mm-nav-link.active svg { opacity: 1; }
+
+        /* Nav dropdown */
+        .mm-nav-dropdown { position: relative; }
+        .mm-nav-dropdown-menu {
+            display: none;
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            min-width: 180px;
+            background: rgba(7, 9, 12, 0.92);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--mm-border);
+            border-radius: var(--mm-r-md);
+            box-shadow: var(--mm-shadow-lg);
+            overflow: hidden;
+            z-index: 100;
+        }
+        .mm-nav-dropdown:hover .mm-nav-dropdown-menu,
+        .mm-nav-dropdown.open .mm-nav-dropdown-menu { display: block; }
+        .mm-nav-dropdown-item {
+            display: block;
+            padding: 10px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--mm-text-secondary);
+            text-decoration: none;
+            transition: background 0.12s, color 0.12s;
+            border-left: 2px solid transparent;
+        }
+        .mm-nav-dropdown-item:hover {
+            background: var(--mm-glass-1);
+            color: var(--mm-text);
+            text-decoration: none;
+        }
+        .mm-nav-dropdown-item.active {
+            color: var(--mm-text);
+            border-left-color: var(--mm-blue);
+            font-weight: 600;
+        }
+
+        /* Nav right side */
+        .mm-nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+        .mm-nav-add {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 13px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--mm-text-muted);
+            background: transparent;
+            border: 1px solid var(--mm-border);
+            border-radius: var(--mm-r-sm);
+            text-decoration: none;
+            transition: color 0.15s, border-color 0.15s, background 0.15s;
+        }
+        .mm-nav-add:hover { color: var(--mm-text); border-color: var(--mm-border-strong); background: var(--mm-glass-1); text-decoration: none; }
+
+        .mm-nav-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--mm-glass-2);
+            border: 1px solid var(--mm-border);
+            color: var(--mm-text-secondary);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        /* Bootstrap navbar overrides */
+        .navbar {
+            background: rgba(10, 10, 12, 0.5) !important;
+            backdrop-filter: blur(32px) saturate(200%) !important;
+            -webkit-backdrop-filter: blur(32px) saturate(200%) !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            padding: 12px 28px !important;
+            height: 70px;
+            position: sticky;
+            top: 0;
+            z-index: 1050;
+        }
+        @media (min-width: 992px) {
+            .navbar-center-tabs {
+                position: absolute;
+                left: 50%;
+                transform: translateX(-50%);
+            }
+        }
+        .navbar-brand {
+            color: #ffffff !important;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+        .nav-link {
+            color: #a1a1aa !important;
+            font-weight: 500;
+            font-size: 14px;
+            padding: 8px 16px !important;
+            border-radius: 20px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin: 0 2px;
+        }
+        .nav-link:hover { 
+            color: #ffffff !important; 
+            background: rgba(255, 255, 255, 0.06) !important; 
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .nav-link-active {
+            color: #ffffff !important;
+            background: rgba(255, 255, 255, 0.08) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            font-weight: 600 !important;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+        }
+        .dropdown-menu {
+            background: rgba(20, 20, 22, 0.7) !important;
+            backdrop-filter: blur(32px) !important;
+            -webkit-backdrop-filter: blur(32px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border-radius: 16px !important;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+            padding: 8px !important;
+            margin-top: 12px !important;
+        }
+        .dropdown-item {
+            color: #a1a1aa !important;
+            font-size: 14px !important;
+            font-weight: 500 !important;
+            padding: 10px 16px !important;
+            border-radius: 10px !important;
+            transition: all 0.2s !important;
+        }
+        .dropdown-item:hover {
+            background: rgba(255, 255, 255, 0.08) !important;
+            color: #ffffff !important;
+        }
+        .dropdown-item.fw-bold { color: #ffffff !important; font-weight: 600 !important; }
+        .dropdown-divider { border-color: rgba(255, 255, 255, 0.08) !important; margin: 6px 0 !important; }
+        .navbar-toggler { border: 1px solid rgba(255, 255, 255, 0.1) !important; border-radius: 12px; }
+        .navbar-toggler-icon { filter: invert(1); }
+
+        .mm-nav-add-glass {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .mm-nav-add-glass:hover {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+            text-decoration: none;
+        }
+        .mm-avatar-glass {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .mm-avatar-glass:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        /* ── Page Content ── */
+        .mm-content {
+            margin-top: 60px;
+            min-height: calc(100vh - 60px);
+        }
+        .mm-page {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 28px 80px;
+        }
+        .mm-page-wide {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 28px 80px;
+        }
+
+        /* ── Page Header ── */
+        .mm-page-header {
+            margin-bottom: 40px;
+        }
+        .mm-page-eyebrow {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--mm-text-muted);
+            margin-bottom: 8px;
+        }
+        .mm-page-title {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--mm-text);
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+            margin-bottom: 8px;
+        }
+        .mm-page-subtitle {
+            font-size: 15px;
+            color: var(--mm-text-secondary);
+            font-weight: 400;
+        }
+
+        /* ── Alerts ── */
+        .mm-glass-alert {
+            background: rgba(255, 255, 255, 0.05) !important;
+            backdrop-filter: blur(24px) !important;
+            -webkit-backdrop-filter: blur(24px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            color: #ffffff !important;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2) !important;
+        }
+        .alert-success { border-left: 4px solid #22c55e !important; }
+        .alert-danger { border-left: 4px solid #ef4444 !important; }
+        .alert-warning { border-left: 4px solid #ddb751 !important; }
+
+        /* ── Breadcrumb ── */
+        .breadcrumb {
+            background: transparent;
+            padding: 0;
+            margin-bottom: 16px;
+        }
+        .breadcrumb-item { font-size: 12px; }
+        .breadcrumb-item a { color: var(--mm-text-muted) !important; text-decoration: none; }
+        .breadcrumb-item a:hover { color: var(--mm-text-secondary) !important; }
+        .breadcrumb-item.active { color: var(--mm-text-secondary) !important; font-weight: 500; }
+        .breadcrumb-item + .breadcrumb-item::before { color: var(--mm-text-muted) !important; }
+
+        /* ── Pagination ── */
+        .pagination .page-link {
+            background: var(--mm-glass-1) !important;
+            border-color: var(--mm-border) !important;
+            color: var(--mm-text-secondary) !important;
+            font-size: 13px;
+            border-radius: var(--mm-r-xs) !important;
+        }
+        .pagination .page-item.active .page-link {
+            background: var(--mm-glass-3) !important;
+            border-color: var(--mm-border-strong) !important;
+            color: var(--mm-text) !important;
+        }
+        .pagination .page-link:hover { background: var(--mm-glass-2) !important; color: var(--mm-text) !important; }
+
+        /* ── Card (Bootstrap override) ── */
+        .card {
+            background: var(--mm-glass-1) !important;
+            border: 1px solid var(--mm-border) !important;
+            border-radius: var(--mm-r-lg) !important;
+        }
+
+        /* ── Empty state ── */
+        .mm-empty {
+            text-align: center;
+            padding: 64px 24px;
+            color: var(--mm-text-muted);
+        }
+        .mm-empty-icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 20px;
+            opacity: 0.3;
+        }
+        .mm-empty-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--mm-text-secondary);
+            margin-bottom: 8px;
+        }
+        .mm-empty-body {
+            font-size: 14px;
+            color: var(--mm-text-muted);
+            max-width: 360px;
+            margin: 0 auto 24px;
+        }
+
+        /* ── Inline code / metadata ── */
+        .mm-meta {
+            font-family: var(--mm-font-mono);
+            font-size: 12px;
+            color: var(--mm-text-muted);
+        }
+
+        /* ── Error/help text ── */
+        .errorlist {
+            list-style: none;
+            padding: 0;
+            margin: 4px 0 0;
+            color: var(--mm-red);
+            font-size: 12px;
+            font-weight: 600;
         }
         .helptext {
             display: block;
-            font-size: 0.875em;
-            color: #6c757d;
-            margin-bottom: 1rem;
+            font-size: 12px;
+            color: var(--mm-text-muted);
+            margin-top: 5px;
         }
-        .nav-link-active { 
-            background-color: #e0e7ff !important; 
-            color: #3730a3 !important; 
+
+        /* ── Progress bar (Bootstrap) ── */
+        .progress {
+            background-color: var(--mm-border) !important;
+            border-radius: var(--mm-r-xs) !important;
+        }
+        .progress-bar { transition: width 0.5s ease !important; }
+
+        /* ── Responsive ── */
+        @media (max-width: 991px) {
+            .mm-nav { padding: 0 16px; }
+            .mm-page, .mm-page-wide { padding: 28px 16px 60px; }
+            .mm-page-title { font-size: 24px; }
+            .mm-stat-value { font-size: 22px; }
+            .navbar { padding: 0 16px !important; }
+        }
+        @media (max-width: 768px) {
+            .mm-page-title { font-size: 20px; }
+            .mm-stat { padding: 16px; }
+            .mm-stat-value { font-size: 20px; }
+        }
+
+        /* ── Action icon button ── */
+        .mm-action-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+            background: var(--mm-glass-1);
+            border: 1px solid var(--mm-border);
+            color: var(--mm-text-muted);
+            text-decoration: none;
+            font-size: 11px;
+            transition: all 0.12s ease;
+            flex-shrink: 0;
+        }
+        .mm-action-icon:hover {
+            background: var(--mm-glass-2);
+            color: var(--mm-text);
+            border-color: var(--mm-border-strong);
+            text-decoration: none;
+        }
+        .mm-action-icon.danger:hover {
+            color: var(--mm-red);
+            border-color: rgba(255, 69, 58, 0.3);
+        }
+
+        /* ── Status pills ── */
+        .mm-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+        }
+        .mm-pill-active {
+            color: var(--mm-green);
+            background: rgba(34,197,94,0.08);
+            border: 1px solid rgba(34,197,94,0.2);
+        }
+        .mm-pill-paused {
+            color: var(--mm-text-muted);
+            background: var(--mm-glass-1);
+            border: 1px solid var(--mm-border);
+        }
+        .mm-pill-danger {
+            color: var(--mm-red);
+            background: rgba(255,69,58,0.08);
+            border: 1px solid rgba(255,69,58,0.2);
+        }
+        .mm-pill-gold {
+            color: var(--mm-gold);
+            background: rgba(212,175,55,0.08);
+            border: 1px solid rgba(212,175,55,0.2);
+        }
+        .mm-pill-blue {
+            color: var(--mm-blue);
+            background: rgba(59,130,246,0.08);
+            border: 1px solid rgba(59,130,246,0.2);
+        }
+
+        /* ── Premium Form Inputs & Select Base ── */
+        input[type="text"], input[type="number"], input[type="date"], input[type="password"], textarea, select {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 14px 16px;
+            color: #ffffff;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(8px);
+        }
+        input:focus, textarea:focus, select:focus {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(221, 167, 81, 0.5);
+            box-shadow: 0 0 0 4px rgba(221, 167, 81, 0.1);
+        }
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(1) opacity(0.6);
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        input[type="date"]::-webkit-calendar-picker-indicator:hover {
+            opacity: 1;
+        }
+
+        /* Custom Select UI (Applied globally via JS) */
+        .custom-select-wrapper {
+            position: relative;
+            user-select: none;
+            width: 100%;
+        }
+        .custom-select-trigger {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 14px 16px;
+            color: #ffffff;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(8px);
+        }
+        .custom-select-trigger:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+        .custom-select-wrapper.open .custom-select-trigger {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(221, 167, 81, 0.5);
+            box-shadow: 0 0 0 4px rgba(221, 167, 81, 0.1);
+        }
+        .custom-select-trigger .arrow {
+            transition: transform 0.3s ease;
+            opacity: 0.7;
+        }
+        .custom-select-wrapper.open .custom-select-trigger .arrow {
+            transform: rotate(180deg);
+        }
+        .custom-options {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            right: 0;
+            background: rgba(20, 20, 22, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            transform: translateY(-8px);
+            z-index: 100;
+            max-height: 240px;
+            overflow-y: auto;
+        }
+        .custom-options::-webkit-scrollbar { width: 6px; }
+        .custom-options::-webkit-scrollbar-track { background: transparent; }
+        .custom-options::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 3px; }
+        .custom-select-wrapper.open .custom-options {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: all;
+            transform: translateY(0);
+        }
+        .custom-option {
+            padding: 12px 16px;
+            color: #a1a1aa;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .custom-option:hover {
+            background: rgba(255, 255, 255, 0.06);
+            color: #ffffff;
+        }
+        .custom-option.selected {
+            background: rgba(221, 167, 81, 0.1);
+            color: #DDA751;
+            font-weight: 500;
         }
     </style>
+    {% block extra_head %}{% endblock %}
 </head>
 <body>
 
-<nav class="navbar navbar-expand-lg bg-white mb-4" style="border-bottom: 1px solid #e5e7eb; padding: 12px 24px;">
+<!-- ── Navigation ── -->
+<nav class="navbar navbar-expand-lg">
   <div class="container-fluid px-0">
-    <a class="navbar-brand d-flex align-items-center" href="{% url 'dashboard' %}" style="font-size: 28px; font-weight: 700; color: #111827;">
-        <img src="{% static 'expenses/images/dhan_track_logo.png' %}" alt="DhanTrack Logo" height="48" style="margin-right: 12px; border-radius: 6px;">
-        DhanTrack
+    <a class="navbar-brand d-flex align-items-center" href="{% url 'dashboard' %}" style="gap: 8px;">
+        <svg class="nav-logo-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 26px; height: 26px; filter: drop-shadow(0 0 8px rgba(221, 167, 81, 0.3));">
+            <defs>
+                <linearGradient id="gold-nav" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#FDE08B" />
+                    <stop offset="50%" stop-color="#DDA751" />
+                    <stop offset="100%" stop-color="#B67B29" />
+                </linearGradient>
+            </defs>
+            <path d="M14 34 V 20 C 14 15, 19 14, 21 17 L 24 21 L 27 17 C 29 14, 34 15, 34 20 V 34" stroke="url(#gold-nav)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="24" cy="9" r="3.5" fill="url(#gold-nav)"/>
+        </svg>
+        <div class="nav-logo-text" style="font-size: 18px; font-weight: 700; color: #ffffff; letter-spacing: -0.02em; margin-bottom: 0;">Money<span style="color: #DDA751;">Mitra</span></div>
     </a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" style="border: none; outline: none;">
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav mx-auto" style="font-size: 14px; font-weight: 500;">
+      <ul class="navbar-nav mx-auto gap-1 navbar-center-tabs">
         {% if user.is_authenticated %}
-            <li class="nav-item me-2">
-                <a class="nav-link px-3 py-2 rounded {% if request.path == '/' %}nav-link-active fw-bold{% else %}text-secondary{% endif %}" href="{% url 'dashboard' %}">Dashboard</a>
-            </li>
-            <li class="nav-item me-2">
-                <a class="nav-link px-3 py-2 rounded {% if '/smart-spending/' in request.path %}nav-link-active fw-bold{% else %}text-secondary{% endif %}" href="{% url 'smart_spending' %}">Smart Spending</a>
-            </li>
-            <li class="nav-item me-2">
-                <a class="nav-link px-3 py-2 rounded {% if '/expenses/' in request.path and 'add' not in request.path %}nav-link-active fw-bold{% else %}text-secondary{% endif %}" href="{% url 'expense_list' %}">Expenses</a>
-            </li>
+            <!-- Overview -->
             <li class="nav-item">
-                <a class="nav-link px-3 py-2 rounded {% if '/incomes/' in request.path and 'add' not in request.path %}nav-link-active fw-bold{% else %}text-secondary{% endif %}" href="{% url 'income_list' %}">Income</a>
+                <a class="nav-link {% if request.path == '/' %}nav-link-active{% endif %}" href="{% url 'dashboard' %}">Overview</a>
+            </li>
+
+            <!-- Track -->
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle {% if '/expenses/' in request.path or '/incomes/' in request.path or '/calendar/' in request.path %}nav-link-active{% endif %}" href="#" id="trackDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Track</a>
+                <ul class="dropdown-menu" aria-labelledby="trackDropdown">
+                    <li><a class="dropdown-item {% if '/expenses/' in request.path and 'add' not in request.path and 'edit' not in request.path %}fw-bold{% endif %}" href="{% url 'expense_list' %}">Expenses</a></li>
+                    <li><a class="dropdown-item {% if '/incomes/' in request.path and 'add' not in request.path and 'edit' not in request.path %}fw-bold{% endif %}" href="{% url 'income_list' %}">Income</a></li>
+                    <li><a class="dropdown-item {% if '/calendar/' in request.path %}fw-bold{% endif %}" href="{% url 'calendar' %}">Calendar</a></li>
+                </ul>
+            </li>
+
+            <!-- Understand -->
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle {% if '/smart-spending/' in request.path %}nav-link-active{% endif %}" href="#" id="understandDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Understand</a>
+                <ul class="dropdown-menu" aria-labelledby="understandDropdown">
+                    <li><a class="dropdown-item {% if '/smart-spending/' in request.path %}fw-bold{% endif %}" href="{% url 'smart_spending' %}">Smart Spending</a></li>
+                    <li><a class="dropdown-item" href="{% url 'smart_spending' %}#spending-dna">Spending DNA</a></li>
+                </ul>
+            </li>
+
+            <!-- Plan -->
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle {% if '/goals/' in request.path or '/recurring/' in request.path or '/forecast/' in request.path %}nav-link-active{% endif %}" href="#" id="planDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Plan</a>
+                <ul class="dropdown-menu" aria-labelledby="planDropdown">
+                    <li><a class="dropdown-item {% if '/goals/' in request.path %}fw-bold{% endif %}" href="{% url 'goal_list' %}">Goals</a></li>
+                    <li><a class="dropdown-item {% if '/recurring/' in request.path %}fw-bold{% endif %}" href="{% url 'recurring_list' %}">Recurring</a></li>
+                    <li><a class="dropdown-item {% if '/forecast/' in request.path %}fw-bold{% endif %}" href="{% url 'forecast' %}">Forecast</a></li>
+                </ul>
+            </li>
+
+            <!-- Simulate -->
+            <li class="nav-item">
+                <a class="nav-link {% if '/simulator/' in request.path %}nav-link-active{% endif %}" href="{% url 'simulator' %}">Simulate</a>
+            </li>
+
+            <!-- Grow -->
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle {% if '/reports/' in request.path %}nav-link-active{% endif %}" href="#" id="growDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Grow</a>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="growDropdown">
+                    <li><a class="dropdown-item {% if '/reports/' in request.path %}fw-bold{% endif %}" href="{% url 'reports' %}">Reports</a></li>
+                    <li><a class="dropdown-item" href="{% url 'download_audit_pdf' %}">Audit PDF</a></li>
+                </ul>
             </li>
         {% endif %}
       </ul>
-      
-      <ul class="navbar-nav ms-auto align-items-center">
+
+      <ul class="navbar-nav ms-auto align-items-center gap-3">
         {% if user.is_authenticated %}
-            <li class="nav-item me-3">
-                <a href="{% url 'expense_add' %}" class="btn btn-primary btn-sm px-3 py-2 fw-semibold" style="background-color: #3b82f6; border: none; font-size: 13px;">+ Add Expense</a>
+            <li class="nav-item d-none d-lg-block">
+                <a href="{% url 'expense_add' %}" class="mm-nav-add-glass">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    Expense
+                </a>
             </li>
-            <li class="nav-item me-4">
-                <a href="{% url 'income_add' %}" class="btn btn-outline-secondary btn-sm px-3 py-2 fw-semibold" style="border-color: #e5e7eb; color: #374151; font-size: 13px;">+ Add Income</a>
+            <li class="nav-item d-none d-lg-block">
+                <a href="{% url 'income_add' %}" class="mm-nav-add-glass">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    Income
+                </a>
             </li>
-            <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle d-flex align-items-center p-0" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    <div style="width: 32px; height: 32px; border-radius: 50%; background-color: #1e40af; color: white; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600;">
+            <li class="nav-item dropdown ms-2">
+                <a class="nav-link p-0 d-flex align-items-center dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="border-radius: 50%;">
+                    <div class="mm-avatar-glass">
                         {{ user.username|make_list|first|upper }}
                     </div>
                 </a>
-                <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="userDropdown" style="border: 1px solid #e5e7eb; border-radius: 8px;">
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                    <li><span class="dropdown-item fw-bold" style="cursor:default;">{{ user.username }}</span></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a href="{% url 'profile' %}" class="dropdown-item">Money Profile</a></li>
+                    <li><hr class="dropdown-divider"></li>
                     <li>
-                        <form action="{% url 'logout' %}" method="post" class="m-0">
+                        <form action="{% url 'logout' %}" method="post" class="m-0 d-flex">
                             {% csrf_token %}
-                            <button type="submit" class="dropdown-item text-danger py-2" style="font-size: 14px;">Logout</button>
+                            <button type="submit" class="dropdown-item w-100 text-start" style="color: #FF453A !important; background: transparent; border: none;">Logout</button>
                         </form>
                     </li>
                 </ul>
             </li>
         {% else %}
-            <li class="nav-item"><a class="nav-link text-secondary fw-medium" href="{% url 'login' %}">Login</a></li>
-            <li class="nav-item ms-2"><a class="btn btn-primary btn-sm px-3 py-2 fw-semibold" href="{% url 'register' %}">Register</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Login</a></li>
+            <li class="nav-item"><a class="btn-primary btn btn-sm px-3 py-2" style="background: rgba(255, 255, 255, 0.08) !important; border: 1px solid rgba(255, 255, 255, 0.1) !important;" href="{% url 'register' %}">Get Started</a></li>
         {% endif %}
       </ul>
     </div>
   </div>
 </nav>
 
-<div class="container">
+<!-- ── Main Content ── -->
+<div class="mm-content">
     {% if messages %}
+    <div style="max-width:1200px;margin:0 auto;padding:24px 28px 0; position:relative; z-index:1040;">
         {% for message in messages %}
-            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show mm-glass-alert" role="alert" style="font-size:15px; font-weight:500; display:flex; align-items:center; justify-content:space-between; padding: 16px 20px; border-radius: 16px;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                    {% if message.tags == 'success' %}
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: #22c55e;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    {% elif message.tags == 'error' or message.tags == 'danger' %}
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: #ef4444;"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                    {% else %}
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: #ddb751;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                    {% endif %}
+                    {{ message }}
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" style="filter: invert(1); opacity: 0.5; padding: 0; margin: 0;"></button>
             </div>
         {% endfor %}
+    </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            setTimeout(function() {
+                var alerts = document.querySelectorAll('.alert');
+                alerts.forEach(function(alertNode) {
+                    var bsAlert = new bootstrap.Alert(alertNode);
+                    bsAlert.close();
+                });
+            }, 4000);
+        });
+    </script>
     {% endif %}
 
     {% block content %}
@@ -123,11 +1240,89 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+    // Data-width for progress bars
     document.addEventListener("DOMContentLoaded", function() {
         document.querySelectorAll('[data-width]').forEach(function(el) {
             el.style.width = el.getAttribute('data-width') + '%';
         });
+
+        // Global Custom Select Logic
+        document.querySelectorAll("select").forEach(select => {
+            // Skip if already wrapped
+            if(select.parentElement.classList.contains("custom-select-wrapper")) return;
+
+            // Hide original select
+            select.style.display = "none";
+            
+            // Create wrapper
+            const wrapper = document.createElement("div");
+            wrapper.className = "custom-select-wrapper";
+            
+            // Create trigger
+            const trigger = document.createElement("div");
+            trigger.className = "custom-select-trigger";
+            
+            const triggerText = document.createElement("span");
+            triggerText.className = "trigger-text";
+            triggerText.innerText = select.options[select.selectedIndex]?.text || "";
+            
+            const arrow = document.createElement("div");
+            arrow.innerHTML = '<svg class="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>';
+            
+            trigger.appendChild(triggerText);
+            trigger.appendChild(arrow);
+            
+            // Create options container
+            const optionsContainer = document.createElement("div");
+            optionsContainer.className = "custom-options";
+            
+            Array.from(select.options).forEach(option => {
+                const optDiv = document.createElement("div");
+                optDiv.className = "custom-option";
+                if(option.selected) optDiv.classList.add("selected");
+                optDiv.innerText = option.text;
+                
+                optDiv.addEventListener("click", function(e) {
+                    e.stopPropagation();
+                    // Update select value
+                    select.value = option.value;
+                    triggerText.innerText = option.text;
+                    
+                    // Trigger change event for Django / other listeners
+                    select.dispatchEvent(new Event('change'));
+                    
+                    // Update selected class
+                    optionsContainer.querySelectorAll(".custom-option").forEach(el => el.classList.remove("selected"));
+                    optDiv.classList.add("selected");
+                    
+                    wrapper.classList.remove("open");
+                });
+                
+                optionsContainer.appendChild(optDiv);
+            });
+            
+            wrapper.appendChild(trigger);
+            wrapper.appendChild(optionsContainer);
+            
+            // Insert in DOM
+            select.parentNode.insertBefore(wrapper, select.nextSibling);
+            
+            // Toggle open
+            trigger.addEventListener("click", function(e) {
+                e.stopPropagation();
+                document.querySelectorAll(".custom-select-wrapper").forEach(w => {
+                    if(w !== wrapper) w.classList.remove("open");
+                });
+                wrapper.classList.toggle("open");
+            });
+        });
+        
+        // Close on outside click
+        document.addEventListener("click", function() {
+            document.querySelectorAll(".custom-select-wrapper").forEach(w => w.classList.remove("open"));
+        });
     });
 </script>
+{% block extra_js %}{% endblock %}
 </body>
 </html>

@@ -1,0 +1,209 @@
+{% extends 'expenses/base.html' %}
+{% block title %}Setup — MoneyMitra{% endblock %}
+
+{% block content %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+    .setup-outer {
+        position: relative;
+        min-height: 80vh;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 60px 20px 80px;
+        z-index: 1;
+        font-family: 'Inter', sans-serif;
+    }
+    .setup-wrapper { max-width: 840px; width: 100%; position: relative; z-index: 2; }
+
+    /* Background Animations (Alive & Dynamic) */
+    @keyframes float-glow-1 {
+        0% { opacity: 0.4; transform: scale(1) translate(0, 0); }
+        50% { opacity: 1; transform: scale(1.15) translate(30px, -20px); }
+        100% { opacity: 0.4; transform: scale(1) translate(0, 0); }
+    }
+    @keyframes float-glow-2 {
+        0% { opacity: 0.4; transform: scale(1) translate(0, 0); }
+        50% { opacity: 1; transform: scale(1.2) translate(-30px, 20px); }
+        100% { opacity: 0.4; transform: scale(1) translate(0, 0); }
+    }
+    @keyframes float-arc-1 {
+        0% { opacity: 0.6; transform: scale(1) rotate(0deg) translate(0, 0); }
+        50% { opacity: 1; transform: scale(1.05) rotate(5deg) translate(20px, 15px); }
+        100% { opacity: 0.6; transform: scale(1) rotate(0deg) translate(0, 0); }
+    }
+    @keyframes float-arc-2 {
+        0% { opacity: 0.6; transform: scale(1) rotate(0deg) translate(0, 0); }
+        50% { opacity: 1; transform: scale(1.05) rotate(-5deg) translate(-25px, -15px); }
+        100% { opacity: 0.6; transform: scale(1) rotate(0deg) translate(0, 0); }
+    }
+    
+    .bg-glow-1 { animation: float-glow-1 12s infinite ease-in-out; }
+    .bg-glow-2 { animation: float-glow-2 15s infinite ease-in-out; }
+    .bg-arc-1 { animation: float-arc-1 14s infinite ease-in-out; }
+    .bg-arc-2 { animation: float-arc-2 18s infinite ease-in-out; }
+    .bg-arc-3 { animation: float-arc-1 22s infinite ease-in-out reverse; }
+
+    .mode-card {
+        position: relative;
+        background: rgba(20, 20, 22, 0.4);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
+        border-left: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 24px 28px;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        height: 100%;
+        box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+        animation: panel-in 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+        overflow: hidden;
+    }
+    .mode-card::before {
+        content: ""; position: absolute; top: 0; left: 24px; right: 24px; height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(221,167,81,0.6), transparent);
+    }
+    @keyframes panel-in {
+        from { opacity: 0; transform: translateY(24px); }
+        to { opacity: 1; transform: none; }
+    }
+    .mode-card:hover {
+        background: rgba(30, 30, 32, 0.5);
+        border-color: rgba(255, 255, 255, 0.2);
+        transform: translateY(-4px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3), inset 0 2px 4px rgba(255,255,255,0.05);
+    }
+    .mode-card.selected {
+        background: rgba(221, 167, 81, 0.1) !important;
+        border-color: rgba(221, 167, 81, 0.5) !important;
+        box-shadow: 0 12px 40px rgba(221, 167, 81, 0.2), inset 0 0 0 1px rgba(221, 167, 81, 0.5) !important;
+        transform: translateY(-4px);
+    }
+    .mode-title { 
+        font-size: 16px; 
+        font-weight: 700; 
+        color: #ffffff; 
+        letter-spacing: -0.01em; 
+    }
+    .mode-desc { 
+        font-size: 14px; 
+        color: #a1a1aa; 
+        line-height: 1.5; 
+        margin-top: 8px; 
+    }
+    .mode-select-radio { display: none; }
+    
+    .setup-heading {
+        font-size: 32px;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        margin-bottom: 16px;
+        color: #ffffff;
+    }
+    .setup-subheading {
+        font-size: 16px;
+        color: #a1a1aa;
+        max-width: 480px;
+        margin: 0 auto;
+        line-height: 1.6;
+    }
+    
+    .btn-dashboard {
+        display: inline-block;
+        background: linear-gradient(135deg, #DDA751 0%, #B67B29 100%);
+        border: none;
+        color: #000000;
+        padding: 16px 56px;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 16px rgba(221, 167, 81, 0.4);
+    }
+    .btn-dashboard:hover {
+        box-shadow: 0 6px 20px rgba(221, 167, 81, 0.6);
+        transform: translateY(-2px);
+    }
+    .btn-dashboard:active {
+        transform: translateY(0);
+    }
+</style>
+
+    <!-- Cinematic Orbital Background -->
+    <div style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; overflow: hidden; z-index: -1; pointer-events: none; background-color: #030405;">
+        <!-- Very large, extremely soft blue radial glow (left) -->
+        <div class="bg-glow-1" style="position: absolute; top: 20%; left: -20%; width: 50vw; height: 50vw; border-radius: 50%; background: radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%); filter: blur(100px);"></div>
+        
+        <!-- Very large, extremely soft gold radial glow (upper/right) -->
+        <div class="bg-glow-2" style="position: absolute; top: -10%; right: -20%; width: 60vw; height: 60vw; border-radius: 50%; background: radial-gradient(circle, rgba(212,175,55,0.07) 0%, transparent 70%); filter: blur(100px);"></div>
+
+        <!-- Glassy glowing curved/orbital arcs -->
+        <!-- Blue arc -->
+        <div class="bg-arc-1" style="position: absolute; top: 10%; left: -30vw; width: 70vw; height: 70vw; border-radius: 50%; border: 1px solid rgba(59,130,246,0.4); box-shadow: inset 0 0 40px rgba(59,130,246,0.15), 0 0 60px rgba(59,130,246,0.2);"></div>
+        
+        <!-- Gold arc 1 -->
+        <div class="bg-arc-2" style="position: absolute; top: -20vh; right: -10vw; width: 60vw; height: 60vw; border-radius: 50%; border: 1px solid rgba(212,175,55,0.4); box-shadow: inset 0 0 40px rgba(212,175,55,0.15), 0 0 60px rgba(212,175,55,0.2);"></div>
+        
+        <!-- Gold arc 2 (outer) -->
+        <div class="bg-arc-3" style="position: absolute; top: -10vh; right: -20vw; width: 80vw; height: 80vw; border-radius: 50%; border: 1px solid rgba(212,175,55,0.2); box-shadow: inset 0 0 20px rgba(212,175,55,0.05), 0 0 30px rgba(212,175,55,0.1);"></div>
+
+        <!-- Subtle atmospheric bloom/noise depth -->
+        <div style="position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, transparent 30%, rgba(3,4,5,0.8) 100%);"></div>
+    </div>
+
+<div class="setup-outer">
+    <div class="setup-wrapper">
+        <div style="text-align:center;margin-bottom:48px;">
+            <h1 class="setup-heading">Let's make MoneyMitra yours.</h1>
+            <p class="setup-subheading">Tell us a little about your money life so we can make your experience more relevant.</p>
+        </div>
+
+        <form method="POST">
+            {% csrf_token %}
+            <div class="row g-3 mb-5">
+                {% for value, title, desc in mode_choices %}
+                <div class="col-md-6">
+                    <label class="w-100 h-100 m-0">
+                        <input type="radio" name="mode" value="{{ value }}" class="mode-select-radio" required>
+                        <div class="mode-card">
+                            <div class="mode-title">{{ title }}</div>
+                            <div class="mode-desc">{{ desc }}</div>
+                        </div>
+                    </label>
+                </div>
+                {% empty %}
+                <!-- Fallback hardcoded options -->
+                <div class="col-md-6"><label class="w-100 h-100 m-0"><input type="radio" name="mode" value="School Student" class="mode-select-radio" required><div class="mode-card"><div class="mode-title">School Student</div><div class="mode-desc">Track allowance, school spending, hobbies, and everyday purchases.</div></div></label></div>
+                <div class="col-md-6"><label class="w-100 h-100 m-0"><input type="radio" name="mode" value="College Student" class="mode-select-radio"><div class="mode-card"><div class="mode-title">College Student</div><div class="mode-desc">Understand spending across food, travel, social life, study, and personal needs.</div></div></label></div>
+                <div class="col-md-6"><label class="w-100 h-100 m-0"><input type="radio" name="mode" value="Working Professional" class="mode-select-radio"><div class="mode-card"><div class="mode-title">Working Professional</div><div class="mode-desc">Track income, essentials, lifestyle spending, goals, and recurring commitments.</div></div></label></div>
+                <div class="col-md-6"><label class="w-100 h-100 m-0"><input type="radio" name="mode" value="Freelancer" class="mode-select-radio"><div class="mode-card"><div class="mode-title">Freelancer</div><div class="mode-desc">Understand irregular income, work expenses, personal spending, and cash flow.</div></div></label></div>
+                <div class="col-md-6"><label class="w-100 h-100 m-0"><input type="radio" name="mode" value="Business Owner" class="mode-select-radio"><div class="mode-card"><div class="mode-title">Business Owner</div><div class="mode-desc">Separate business-related spending from personal money and understand cash movement.</div></div></label></div>
+                <div class="col-md-6"><label class="w-100 h-100 m-0"><input type="radio" name="mode" value="Family / Household" class="mode-select-radio"><div class="mode-card"><div class="mode-title">Family / Household</div><div class="mode-desc">Keep household income, essentials, recurring bills, and shared goals organized.</div></div></label></div>
+                <div class="col-md-6"><label class="w-100 h-100 m-0"><input type="radio" name="mode" value="Retired / Senior" class="mode-select-radio"><div class="mode-card"><div class="mode-title">Retired / Senior</div><div class="mode-desc">Keep track of regular income, essentials, healthcare, lifestyle, and planned spending.</div></div></label></div>
+                <div class="col-md-6"><label class="w-100 h-100 m-0"><input type="radio" name="mode" value="Other" class="mode-select-radio"><div class="mode-card"><div class="mode-title">Other</div><div class="mode-desc">Build a money system that fits your life.</div></div></label></div>
+                {% endfor %}
+            </div>
+
+            <div style="text-align:center;">
+                <button type="submit" class="btn-dashboard">Continue to Dashboard</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const radios = document.querySelectorAll('.mode-select-radio');
+    radios.forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            document.querySelectorAll('.mode-card').forEach(function(c) { c.classList.remove('selected'); });
+            if (this.checked) { this.nextElementSibling.classList.add('selected'); }
+        });
+    });
+});
+</script>
+{% endblock %}

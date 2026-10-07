@@ -4,671 +4,420 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DhanTrack — Track. Understand. Grow.</title>
-    <meta name="description" content="DhanTrack helps you track income and expenses, understand spending patterns, and make more intentional financial decisions.">
+    <title>MoneyMitra — Your money companion</title>
+    <meta name="description" content="MoneyMitra helps you track income and expenses, understand spending patterns, and make more intentional financial decisions.">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #2563EB;
-            --primary-hover: #1d4ed8;
-            --navy: #0F172A;
-            --green: #16A34A;
-            --bg-light: #F8FAFC;
-            --border: #E2E8F0;
-            --text-muted: #64748B;
+            --mm-bg:            #030405;
+            --mm-bg-elevated:   #07090c;
+            --mm-glass-1:       rgba(255,255,255,0.025);
+            --mm-glass-2:       rgba(255,255,255,0.04);
+            --mm-border:        rgba(255,255,255,0.08);
+            --mm-border-strong: rgba(255,255,255,0.12);
+            --mm-text:          #F5F5F7;
+            --mm-text-secondary:#A1A1AA;
+            --mm-text-muted:    #71717A;
+            --mm-blue:          #3B82F6;
+            --mm-green:         #22C55E;
+            --mm-gold:          #D4AF37;
+            --mm-red:           #FF453A;
         }
+
+        *, *::before, *::after { box-sizing: border-box; }
+
         body {
-            font-family: 'Inter', sans-serif;
-            color: var(--navy);
-            background-color: #ffffff;
-            line-height: 1.6;
+            background-color: var(--mm-bg);
+            color: var(--mm-text);
+            font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden;
         }
-        h1, h2, h3, h4, h5, h6 {
-            font-weight: 700;
-            letter-spacing: -0.02em;
+
+        a { text-decoration: none; }
+
+        /* ── Nav ── */
+        .l-nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            height: 60px;
+            background: rgba(3,4,5,0.75);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border-bottom: 1px solid var(--mm-border);
+            display: flex; align-items: center; padding: 0 32px;
         }
-        a {
-            text-decoration: none;
+        .l-nav-inner { display: flex; align-items: center; width: 100%; max-width: 1200px; margin: 0 auto; }
+        .l-brand { display: flex; align-items: center; gap: 10px; margin-right: auto; }
+        .l-brand img { height: 26px; }
+        .l-brand-name { font-size: 17px; font-weight: 800; letter-spacing: -0.02em; color: var(--mm-text); }
+        .l-brand-tag { font-size: 11px; color: var(--mm-text-muted); font-weight: 500; }
+        .l-nav-ctas { display: flex; gap: 10px; align-items: center; }
+        .l-btn-ghost {
+            padding: 7px 16px; font-size: 13px; font-weight: 600;
+            color: var(--mm-text-secondary); border: 1px solid var(--mm-border);
+            border-radius: 8px; background: transparent; transition: all 0.15s;
         }
-        
-        /* Navbar */
-        .navbar-brand img {
-            height: 56px;
-            border-radius: 6px;
-            margin-right: 12px;
+        .l-btn-ghost:hover { color: var(--mm-text); border-color: var(--mm-border-strong); background: var(--mm-glass-1); }
+        .l-btn-primary {
+            padding: 7px 18px; font-size: 13px; font-weight: 700;
+            color: var(--mm-bg); background: var(--mm-text);
+            border-radius: 8px; border: none; transition: opacity 0.15s;
         }
-        .navbar-brand span {
-            font-size: 24px;
-            font-weight: 700;
-            color: var(--navy);
-        }
-        .nav-link {
-            color: var(--text-muted);
-            font-weight: 500;
-            font-size: 15px;
-            margin: 0 12px;
-            transition: color 0.2s;
-        }
-        .nav-link:hover {
-            color: var(--navy);
-        }
-        .btn-primary-custom {
-            background-color: var(--primary);
-            color: #fff;
-            font-weight: 600;
-            padding: 10px 24px;
-            border-radius: 8px;
-            border: none;
-            transition: background-color 0.2s;
-        }
-        .btn-primary-custom:hover {
-            background-color: var(--primary-hover);
-            color: #fff;
-        }
-        .btn-outline-custom {
-            background-color: transparent;
-            color: var(--navy);
-            font-weight: 600;
-            padding: 10px 24px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            transition: all 0.2s;
-        }
-        .btn-outline-custom:hover {
-            background-color: var(--bg-light);
-            border-color: #cbd5e1;
-        }
-        
-        /* Hero Section */
-        .hero-section {
+        .l-btn-primary:hover { opacity: 0.88; color: var(--mm-bg); }
+
+        /* ── Hero ── */
+        .hero {
+            min-height: 100vh;
+            display: flex; align-items: center;
+            padding: 120px 32px 80px;
             position: relative;
-            min-height: 80vh;
-            display: flex;
-            align-items: center;
-            background-image: url("{% static 'expenses/images/hero_bg.png' %}");
-            background-size: cover;
-            background-position: center right;
-            background-repeat: no-repeat;
+            overflow: hidden;
         }
-        .hero-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            /* Subtle gradient to ensure text readability on the left, fading out on the right */
-            background: linear-gradient(90deg, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.85) 45%, rgba(255,255,255,0) 100%);
+        .hero::before {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(59,130,246,0.12) 0%, transparent 60%);
+            pointer-events: none;
         }
-        @media (max-width: 991px) {
-            .hero-overlay {
-                background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.95) 60%, rgba(255,255,255,0.4) 100%);
-            }
-        }
-        .hero-content {
-            position: relative;
-            z-index: 1;
-            padding-top: 60px;
-            padding-bottom: 60px;
-        }
+        .hero-inner { max-width: 900px; margin: 0 auto; text-align: center; position: relative; }
         .hero-eyebrow {
-            font-size: 13px;
-            font-weight: 700;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: var(--primary);
-            margin-bottom: 16px;
+            display: inline-flex; align-items: center; gap: 8px;
+            font-size: 11px; font-weight: 700; letter-spacing: 0.12em;
+            text-transform: uppercase; color: var(--mm-blue);
+            background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.2);
+            padding: 5px 14px; border-radius: 20px; margin-bottom: 28px;
         }
         .hero-title {
-            font-size: 56px;
-            line-height: 1.1;
-            margin-bottom: 24px;
-            color: var(--navy);
+            font-size: clamp(40px, 7vw, 76px);
+            font-weight: 800; letter-spacing: -0.04em; line-height: 1.0;
+            color: var(--mm-text); margin-bottom: 24px;
         }
-        @media (max-width: 768px) {
-            .hero-title { font-size: 38px; }
-        }
+        .hero-title span { color: var(--mm-blue); }
         .hero-desc {
-            font-size: 18px;
-            color: var(--text-muted);
-            margin-bottom: 32px;
-            max-width: 500px;
+            font-size: 18px; color: var(--mm-text-secondary);
+            max-width: 540px; margin: 0 auto 40px; line-height: 1.6;
         }
-        .hero-subtext {
-            font-size: 13px;
-            color: var(--text-muted);
-            margin-top: 16px;
-            font-weight: 500;
+        .hero-ctas { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 60px; }
+        .hero-btn-primary {
+            padding: 14px 32px; font-size: 15px; font-weight: 700;
+            color: var(--mm-bg); background: var(--mm-text);
+            border-radius: 10px; border: none; transition: opacity 0.15s, transform 0.15s;
         }
-        
-        /* Value Strip */
-        .value-strip {
-            background-color: #ffffff;
-            border-top: 1px solid var(--border);
-            border-bottom: 1px solid var(--border);
-            padding: 40px 0;
+        .hero-btn-primary:hover { opacity: 0.88; color: var(--mm-bg); transform: translateY(-1px); }
+        .hero-btn-ghost {
+            padding: 14px 32px; font-size: 15px; font-weight: 600;
+            color: var(--mm-text-secondary); background: transparent;
+            border: 1px solid var(--mm-border); border-radius: 10px; transition: all 0.15s;
         }
-        .value-item h3 {
-            font-size: 18px;
-            margin-bottom: 8px;
+        .hero-btn-ghost:hover { color: var(--mm-text); border-color: var(--mm-border-strong); background: var(--mm-glass-1); }
+
+        /* Hero stat strip */
+        .hero-stats {
+            display: flex; justify-content: center; gap: 0;
+            background: var(--mm-glass-1); border: 1px solid var(--mm-border);
+            border-radius: 14px; overflow: hidden; max-width: 680px; margin: 0 auto;
         }
-        .value-item p {
-            font-size: 15px;
-            color: var(--text-muted);
-            margin-bottom: 0;
+        .hero-stat {
+            flex: 1; padding: 20px 24px; text-align: center;
+            border-right: 1px solid var(--mm-border);
         }
-        
-        /* General Sections */
-        .section-padding {
-            padding: 100px 0;
+        .hero-stat:last-child { border-right: none; }
+        .hero-stat-val {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 22px; font-weight: 600;
+            color: var(--mm-text); letter-spacing: -0.03em;
         }
-        .section-padding-sm {
-            padding: 60px 0;
+        .hero-stat-label { font-size: 11px; color: var(--mm-text-muted); margin-top: 4px; }
+
+        /* ── Section ── */
+        .l-section { padding: 100px 32px; }
+        .l-section-inner { max-width: 1200px; margin: 0 auto; }
+        .l-eyebrow {
+            font-size: 11px; font-weight: 700; letter-spacing: 0.12em;
+            text-transform: uppercase; color: var(--mm-blue); margin-bottom: 12px;
         }
-        .bg-alternate {
-            background-color: var(--bg-light);
+        .l-section-title {
+            font-size: clamp(28px, 4vw, 44px); font-weight: 800;
+            letter-spacing: -0.03em; margin-bottom: 16px;
         }
-        .section-title {
-            font-size: 36px;
-            margin-bottom: 16px;
+        .l-section-sub {
+            font-size: 17px; color: var(--mm-text-secondary);
+            max-width: 560px; line-height: 1.6; margin-bottom: 56px;
         }
-        .section-subtitle {
-            font-size: 18px;
-            color: var(--text-muted);
-            margin-bottom: 48px;
-            max-width: 600px;
+
+        /* ── Feature cards ── */
+        .feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--mm-border); border-radius: 16px; overflow: hidden; }
+        @media (max-width: 768px) { .feature-grid { grid-template-columns: 1fr; } }
+        .feature-card {
+            background: var(--mm-bg-elevated);
+            padding: 32px 28px;
+            transition: background 0.2s;
         }
-        
-        /* Mockups & Cards */
-        .mockup-card {
-            background: #ffffff;
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            box-shadow: 0 10px 40px -10px rgba(0,0,0,0.05);
+        .feature-card:hover { background: var(--mm-glass-1); }
+        .feature-icon {
+            width: 40px; height: 40px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 18px; font-size: 18px;
+        }
+        .fi-blue { background: rgba(59,130,246,0.1); }
+        .fi-green { background: rgba(34,197,94,0.1); }
+        .fi-gold { background: rgba(212,175,55,0.1); }
+        .feature-title { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+        .feature-desc { font-size: 13px; color: var(--mm-text-secondary); line-height: 1.55; }
+
+        /* ── Module showcase ── */
+        .module-row { display: flex; gap: 40px; align-items: center; margin-bottom: 80px; }
+        .module-row:nth-child(even) { flex-direction: row-reverse; }
+        @media (max-width: 768px) { .module-row, .module-row:nth-child(even) { flex-direction: column; } }
+        .module-text { flex: 1; }
+        .module-visual {
+            flex: 1;
+            background: var(--mm-glass-1); border: 1px solid var(--mm-border);
+            border-radius: 16px; padding: 28px; min-height: 220px;
+        }
+        .module-name {
+            font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+            text-transform: uppercase; color: var(--mm-blue); margin-bottom: 10px;
+        }
+        .module-title { font-size: 26px; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 12px; }
+        .module-desc { font-size: 15px; color: var(--mm-text-secondary); line-height: 1.6; margin-bottom: 20px; }
+        .module-link { font-size: 13px; font-weight: 600; color: var(--mm-blue); }
+        .module-link:hover { color: var(--mm-text); }
+
+        /* Visual mockup rows */
+        .vis-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--mm-border); }
+        .vis-row:last-child { border-bottom: none; }
+        .vis-label { font-size: 13px; color: var(--mm-text-secondary); }
+        .vis-val { font-family: 'IBM Plex Mono', monospace; font-size: 13px; font-weight: 600; }
+        .vis-positive { color: var(--mm-green); }
+        .vis-negative { color: var(--mm-red); }
+        .vis-bar { height: 3px; background: var(--mm-border); border-radius: 2px; margin-top: 4px; overflow: hidden; }
+        .vis-fill { height: 100%; border-radius: 2px; }
+
+        /* ── CTA ── */
+        .l-cta {
+            text-align: center;
+            background: radial-gradient(ellipse 80% 60% at 50% 100%, rgba(59,130,246,0.08) 0%, transparent 70%);
+            padding: 120px 32px;
+            border-top: 1px solid var(--mm-border);
+        }
+        .l-cta-title { font-size: clamp(32px, 5vw, 56px); font-weight: 800; letter-spacing: -0.04em; margin-bottom: 16px; }
+        .l-cta-sub { font-size: 17px; color: var(--mm-text-secondary); margin-bottom: 36px; }
+
+        /* ── Footer ── */
+        .l-footer {
+            border-top: 1px solid var(--mm-border);
             padding: 32px;
-            height: 100%;
+            display: flex; justify-content: space-between; align-items: center;
+            flex-wrap: wrap; gap: 16px;
         }
-        .insight-pill {
-            display: inline-flex;
-            align-items: center;
-            background-color: var(--bg-light);
-            border: 1px solid var(--border);
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 500;
-            margin-bottom: 12px;
-            width: 100%;
-        }
-        .insight-pill .label { color: var(--text-muted); margin-right: auto; }
-        .insight-pill .value { font-weight: 700; color: var(--navy); }
-        
-        .dna-pill {
-            display: inline-block;
-            background-color: #EFF6FF;
-            color: var(--primary);
-            font-size: 13px;
-            font-weight: 600;
-            padding: 6px 12px;
-            border-radius: 20px;
-            margin: 4px;
-        }
-        
-        /* How It Works */
-        .step-num {
-            font-size: 48px;
-            font-weight: 700;
-            color: #DBEAFE;
-            line-height: 1;
-            margin-bottom: 16px;
-        }
-        .step-title {
-            font-size: 20px;
-            margin-bottom: 8px;
-        }
-        
-        /* Footer */
-        footer {
-            background-color: var(--navy);
-            color: #ffffff;
-            padding: 60px 0 30px;
-        }
-        footer a {
-            color: #94A3B8;
-            font-size: 14px;
-            transition: color 0.2s;
-            display: block;
-            margin-bottom: 8px;
-        }
-        footer a:hover {
-            color: #ffffff;
-        }
-        .footer-brand span {
-            font-size: 20px;
-            font-weight: 700;
-            color: #ffffff;
-        }
-        .footer-tagline {
-            color: #94A3B8;
-            font-size: 14px;
-            margin-top: 12px;
-        }
+        .l-footer-text { font-size: 13px; color: var(--mm-text-muted); }
+        .l-footer-links { display: flex; gap: 20px; }
+        .l-footer-link { font-size: 13px; color: var(--mm-text-muted); }
+        .l-footer-link:hover { color: var(--mm-text-secondary); }
     </style>
 </head>
 <body>
 
-    <!-- NAVIGATION -->
-    <nav class="navbar navbar-expand-lg bg-white sticky-top shadow-sm" style="padding: 16px 0; border-bottom: 1px solid #E2E8F0;">
-        <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="{% url 'landing' %}">
-                <img src="{% static 'expenses/images/dhan_track_logo.png' %}" alt="DhanTrack Logo">
-                <span>DhanTrack</span>
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            
-            <div class="collapse navbar-collapse" id="navbarContent">
-                <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
-                    <li class="nav-item">
-                        <a class="nav-link" href="#features">Features</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#how-it-works">How it works</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#smart-spending">Smart Spending</a>
-                    </li>
-                </ul>
-                <div class="d-flex align-items-center gap-3">
-                    {% if user.is_authenticated %}
-                        <a href="{% url 'dashboard' %}" class="btn-outline-custom text-decoration-none">Dashboard</a>
-                        <a href="{% url 'smart_spending' %}" class="btn-primary-custom text-decoration-none">Smart Spending</a>
-                    {% else %}
-                        <a href="{% url 'login' %}" class="nav-link text-dark fw-semibold px-0">Login</a>
-                        <a href="{% url 'register' %}" class="btn-primary-custom text-decoration-none">Get Started</a>
-                    {% endif %}
-                </div>
+<!-- Navigation -->
+<nav class="l-nav">
+    <div class="l-nav-inner">
+        <a href="{% url 'landing' %}" class="l-brand">
+            <img src="{% static 'expenses/images/branding/moneymitra-mark.svg' %}" alt="MoneyMitra">
+            <div>
+                <div class="l-brand-name">MoneyMitra</div>
             </div>
+        </a>
+        <div class="l-nav-ctas">
+            <a href="{% url 'login' %}" class="l-btn-ghost">Sign in</a>
+            <a href="{% url 'register' %}" class="l-btn-primary">Get started</a>
         </div>
-    </nav>
+    </div>
+</nav>
 
-    <!-- HERO SECTION -->
-    <section class="hero-section">
-        <div class="hero-overlay"></div>
-        <div class="container hero-content">
-            <div class="row">
-                <div class="col-lg-6 col-md-8">
-                    <div class="hero-eyebrow">Personal Finance, Made Simple</div>
-                    <h1 class="hero-title">Take control of your money.<br>Understand where it goes.</h1>
-                    <p class="hero-desc">DhanTrack helps you track income and expenses, understand your spending patterns, and make more intentional financial decisions.</p>
-                    
-                    <div class="d-flex flex-wrap gap-3">
-                        {% if user.is_authenticated %}
-                            <a href="{% url 'dashboard' %}" class="btn-primary-custom text-decoration-none">Go to Dashboard</a>
-                        {% else %}
-                            <a href="{% url 'register' %}" class="btn-primary-custom text-decoration-none">Start Tracking Free</a>
-                            <a href="#smart-spending" class="btn-outline-custom text-decoration-none bg-white">Explore Smart Spending</a>
-                        {% endif %}
-                    </div>
-                    <div class="hero-subtext">No complicated setup. Track your money in minutes.</div>
-                </div>
-                <!-- Right column is intentionally empty to allow the background image to shine through -->
-                <div class="col-lg-6 d-none d-lg-block"></div>
+<!-- Hero -->
+<section class="hero">
+    <div class="hero-inner">
+        <div class="hero-eyebrow">Personal Finance · Reimagined</div>
+        <h1 class="hero-title">Your money,<br><span>finally clear.</span></h1>
+        <p class="hero-desc">MoneyMitra is a premium personal finance tool that helps you track every rupee, understand your spending patterns, and build toward your financial goals.</p>
+        <div class="hero-ctas">
+            <a href="{% url 'register' %}" class="hero-btn-primary">Start for free</a>
+            <a href="{% url 'login' %}" class="hero-btn-ghost">Sign in</a>
+        </div>
+        <div class="hero-stats">
+            <div class="hero-stat">
+                <div class="hero-stat-val">Track</div>
+                <div class="hero-stat-label">Income &amp; Expenses</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat-val">Understand</div>
+                <div class="hero-stat-label">Spending DNA</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat-val">Plan</div>
+                <div class="hero-stat-label">Goals &amp; Forecast</div>
+            </div>
+            <div class="hero-stat">
+                <div class="hero-stat-val">Grow</div>
+                <div class="hero-stat-label">Reports &amp; Audit</div>
             </div>
         </div>
-    </section>
+    </div>
+</section>
 
-    <!-- TRUST / VALUE STRIP -->
-    <section class="value-strip">
-        <div class="container">
-            <div class="row text-center g-4">
-                <div class="col-md-4 value-item">
-                    <h3>TRACK</h3>
-                    <p>Record income and expenses in one place.</p>
-                </div>
-                <div class="col-md-4 value-item">
-                    <h3>UNDERSTAND</h3>
-                    <p>Discover patterns in your spending.</p>
-                </div>
-                <div class="col-md-4 value-item">
-                    <h3>GROW</h3>
-                    <p>Use insights to make more intentional choices.</p>
-                </div>
+<!-- Features -->
+<section class="l-section" style="padding-top: 0;">
+    <div class="l-section-inner">
+        <div class="text-center mb-5">
+            <div class="l-eyebrow">Why MoneyMitra</div>
+            <h2 class="l-section-title">Everything your money needs</h2>
+            <p class="l-section-sub mx-auto" style="text-align:center;">Built for people who take their finances seriously — without the complexity of enterprise tools.</p>
+        </div>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-icon fi-blue">💳</div>
+                <div class="feature-title">Expense &amp; Income Tracking</div>
+                <div class="feature-desc">Log every transaction with intent tags, categories, and dates. Filter, search, and understand where your money moves.</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon fi-green">🧬</div>
+                <div class="feature-title">Spending DNA</div>
+                <div class="feature-desc">Discover behavioral patterns in your spending. Need vs. Want breakdowns, repeat rhythms, and outlier detection.</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon fi-gold">🎯</div>
+                <div class="feature-title">Goals &amp; Milestones</div>
+                <div class="feature-desc">Set financial targets, track progress in real-time, and see exactly how far you are from your goals.</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon fi-blue">🔮</div>
+                <div class="feature-title">Cash Flow Forecast</div>
+                <div class="feature-desc">Project your balance into the future using recurring rules. See exactly what your account will look like in 30, 60, or 90 days.</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon fi-green">⚗️</div>
+                <div class="feature-title">Money Simulator</div>
+                <div class="feature-desc">Run "what-if" scenarios. What if you earned ₹10,000 more per month? What if you cut dining by 20%?</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon fi-gold">📊</div>
+                <div class="feature-title">Reports &amp; PDF Audit</div>
+                <div class="feature-desc">Comprehensive period reports with category breakdowns, intent analysis, and downloadable PDF audit reports.</div>
             </div>
         </div>
-    </section>
+    </div>
+</section>
 
-    <!-- FEATURES SECTION -->
-    <section id="features" class="section-padding bg-alternate">
-        <div class="container">
-            <div class="text-center mb-5 pb-3">
-                <h2 class="section-title">Everything you need to understand your money.</h2>
-                <p class="section-subtitle mx-auto">Simple tools for tracking, understanding, and improving your everyday finances.</p>
-            </div>
-            
-            <div class="row g-5">
-                <!-- Feature 1 -->
-                <div class="col-lg-4">
-                    <div class="mockup-card">
-                        <div class="mb-4" style="font-size: 32px;">📊</div>
-                        <h4 class="mb-3">Know where your money goes.</h4>
-                        <p class="text-muted mb-4">Record income and expenses quickly and keep your financial activity organized in one place.</p>
-                        <ul class="list-unstyled mb-4 text-muted" style="font-size: 15px;">
-                            <li class="mb-2">• Add income and expenses</li>
-                            <li class="mb-2">• Search and filter transactions</li>
-                            <li class="mb-2">• See your current balance</li>
-                            <li class="mb-2">• Review recent activity</li>
-                        </ul>
-                        <a href="{% if user.is_authenticated %}{% url 'expense_list' %}{% else %}{% url 'register' %}{% endif %}" class="fw-semibold text-decoration-none" style="color: var(--primary);">Start tracking →</a>
-                    </div>
-                </div>
-                
-                <!-- Feature 2 -->
-                <div class="col-lg-4">
-                    <div class="mockup-card" style="border-top: 4px solid var(--primary);">
-                        <div class="mb-4" style="font-size: 32px;">💡</div>
-                        <h4 class="mb-3">Turn spending data into useful insights.</h4>
-                        <p class="text-muted mb-4">Smart Spending looks at your recorded financial activity and highlights patterns that can help you understand your habits.</p>
-                        <ul class="list-unstyled mb-4 text-muted" style="font-size: 15px;">
-                            <li class="mb-2">• Spending breakdown</li>
-                            <li class="mb-2">• Smart insights</li>
-                            <li class="mb-2">• Spending trends</li>
-                            <li class="mb-2">• Personalized observations</li>
-                        </ul>
-                        <a href="#smart-spending" class="fw-semibold text-decoration-none" style="color: var(--primary);">Explore Smart Spending →</a>
-                    </div>
-                </div>
-                
-                <!-- Feature 3 -->
-                <div class="col-lg-4">
-                    <div class="mockup-card">
-                        <div class="mb-4" style="font-size: 32px;">🧬</div>
-                        <h4 class="mb-3">Understand how you actually spend.</h4>
-                        <p class="text-muted mb-4">Spending DNA turns your transaction history into simple behavioral patterns.</p>
-                        <ul class="list-unstyled mb-4 text-muted" style="font-size: 15px;">
-                            <li class="mb-2">• Category behavior</li>
-                            <li class="mb-2">• Repeat spending</li>
-                            <li class="mb-2">• Small purchase patterns</li>
-                            <li class="mb-2">• Large transactions</li>
-                        </ul>
-                        <a href="#spending-dna" class="fw-semibold text-decoration-none" style="color: var(--primary);">Discover your Spending DNA →</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+<!-- Module Showcase -->
+<section class="l-section" style="background: var(--mm-glass-1); border-top: 1px solid var(--mm-border); border-bottom: 1px solid var(--mm-border);">
+    <div class="l-section-inner">
 
-    <!-- SMART SPENDING SHOWCASE -->
-    <section id="smart-spending" class="section-padding">
-        <div class="container">
-            <div class="row align-items-center g-5">
-                <div class="col-lg-5">
-                    <div class="hero-eyebrow">SMART SPENDING</div>
-                    <h2 class="section-title">Your money tells a story.<br>DhanTrack helps you see it.</h2>
-                    <p class="text-muted mb-5" style="font-size: 18px;">See where your money is going, identify meaningful spending patterns, and understand what deserves your attention.</p>
-                    
-                    <div class="insight-pill">
-                        <span class="label">Largest spending category</span>
-                        <span class="value">Housing & Rent</span>
-                    </div>
-                    <div class="insight-pill">
-                        <span class="label">Income vs expenses</span>
-                        <span class="value text-success">Healthy Balance</span>
-                    </div>
-                    <div class="insight-pill">
-                        <span class="label">Spending trend</span>
-                        <span class="value">Reduced by 12%</span>
-                    </div>
+        <!-- Track -->
+        <div class="module-row">
+            <div class="module-text">
+                <div class="module-name">Track</div>
+                <h3 class="module-title">Every rupee, accounted for.</h3>
+                <p class="module-desc">Log income and expenses with rich detail — categories, intent tags, dates. Powerful filtering makes it easy to find and review any transaction.</p>
+                <a href="{% url 'register' %}" class="module-link">Start tracking →</a>
+            </div>
+            <div class="module-visual">
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--mm-text-muted);margin-bottom:16px;">Recent Transactions</div>
+                <div class="vis-row">
+                    <div><div class="vis-label">Grocery Store</div><div style="font-size:11px;color:var(--mm-text-muted);">Food · 5 Oct</div></div>
+                    <div class="vis-val vis-negative">−₹850</div>
                 </div>
-                <div class="col-lg-7">
-                    <div class="mockup-card bg-alternate border-0" style="padding: 24px;">
-                        <div class="bg-white rounded-3 shadow-sm border p-4">
-                            <div class="d-flex justify-content-between mb-4 pb-3 border-bottom">
-                                <div>
-                                    <div class="text-muted" style="font-size: 12px;">Income</div>
-                                    <div class="fw-bold fs-5 text-success">₹85,000</div>
-                                </div>
-                                <div>
-                                    <div class="text-muted" style="font-size: 12px;">Expenses</div>
-                                    <div class="fw-bold fs-5 text-danger">₹42,500</div>
-                                </div>
-                                <div>
-                                    <div class="text-muted" style="font-size: 12px;">Balance</div>
-                                    <div class="fw-bold fs-5">₹42,500</div>
-                                </div>
-                            </div>
-                            <h6 class="fw-bold mb-3">Spending Breakdown</h6>
-                            <div class="d-flex w-100 mb-3 rounded" style="height: 12px; overflow: hidden;">
-                                <div style="width: 45%; background-color: #2563EB;"></div>
-                                <div style="width: 25%; background-color: #3B82F6;"></div>
-                                <div style="width: 20%; background-color: #60A5FA;"></div>
-                                <div style="width: 10%; background-color: #93C5FD;"></div>
-                            </div>
-                            <div class="d-flex flex-wrap gap-2 mb-4 pb-4 border-bottom">
-                                <span class="dna-pill bg-light text-dark">Housing 45%</span>
-                                <span class="dna-pill bg-light text-dark">Food 25%</span>
-                                <span class="dna-pill bg-light text-dark">Transport 20%</span>
-                                <span class="dna-pill bg-light text-dark">Misc 10%</span>
-                            </div>
-                            <h6 class="fw-bold mb-2">Smart Insights</h6>
-                            <p class="text-muted mb-0" style="font-size: 13px;">🍽️ Dining out accounts for your most frequent transactions this month. Adjusting this category could increase your savings rate significantly.</p>
-                        </div>
-                        <div class="text-center mt-3 text-muted" style="font-size: 11px;">* Illustrative interface example representing product capabilities.</div>
-                    </div>
+                <div class="vis-row">
+                    <div><div class="vis-label">Monthly Salary</div><div style="font-size:11px;color:var(--mm-text-muted);">Salary · 1 Oct</div></div>
+                    <div class="vis-val vis-positive">+₹65,000</div>
+                </div>
+                <div class="vis-row">
+                    <div><div class="vis-label">Netflix</div><div style="font-size:11px;color:var(--mm-text-muted);">Subscriptions · 3 Oct</div></div>
+                    <div class="vis-val vis-negative">−₹649</div>
+                </div>
+                <div class="vis-row">
+                    <div><div class="vis-label">Freelance Project</div><div style="font-size:11px;color:var(--mm-text-muted);">Income · 2 Oct</div></div>
+                    <div class="vis-val vis-positive">+₹18,000</div>
                 </div>
             </div>
         </div>
-    </section>
 
-    <!-- SPENDING DNA SHOWCASE -->
-    <section id="spending-dna" class="section-padding bg-alternate">
-        <div class="container text-center mb-5">
-            <h2 class="section-title">Your spending has patterns.<br>Now you can see them.</h2>
-            <p class="section-subtitle mx-auto mb-0">DhanTrack's Spending DNA analyzes your recorded expenses to reveal patterns across categories, transaction sizes, timing, and repeated spending.</p>
-        </div>
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-lg-10">
-                    <div class="mockup-card text-center p-md-5">
-                        <div class="row g-4 mb-5 pb-4 border-bottom text-start">
-                            <div class="col-md-3 col-6">
-                                <div class="text-muted" style="font-size: 12px;">Transactions</div>
-                                <div class="fw-bold fs-4">124</div>
-                            </div>
-                            <div class="col-md-3 col-6">
-                                <div class="text-muted" style="font-size: 12px;">Average purchase</div>
-                                <div class="fw-bold fs-4">₹850</div>
-                            </div>
-                            <div class="col-md-3 col-6">
-                                <div class="text-muted" style="font-size: 12px;">Largest purchase</div>
-                                <div class="fw-bold fs-4">₹15,000</div>
-                            </div>
-                            <div class="col-md-3 col-6">
-                                <div class="text-muted" style="font-size: 12px;">Categories</div>
-                                <div class="fw-bold fs-4">8</div>
-                            </div>
-                        </div>
-                        
-                        <div class="d-flex flex-wrap justify-content-center gap-2 mb-2">
-                            <span class="dna-pill">Category Behavior</span>
-                            <span class="dna-pill">Small Purchases</span>
-                            <span class="dna-pill">Repeat Spending</span>
-                        </div>
-                        <div class="d-flex flex-wrap justify-content-center gap-2">
-                            <span class="dna-pill">Large Transaction</span>
-                            <span class="dna-pill">When You Spend</span>
-                            <span class="dna-pill">Monthly Spending</span>
-                        </div>
-                    </div>
+        <!-- Understand -->
+        <div class="module-row">
+            <div class="module-text">
+                <div class="module-name">Understand</div>
+                <h3 class="module-title">Your spending has a fingerprint.</h3>
+                <p class="module-desc">Smart Spending and Spending DNA reveal behavioral patterns — where you overspend, what you repeat, and what your biggest outliers are.</p>
+                <a href="{% url 'register' %}" class="module-link">Discover your DNA →</a>
+            </div>
+            <div class="module-visual">
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--mm-text-muted);margin-bottom:16px;">Category Breakdown</div>
+                <div style="margin-bottom:14px;">
+                    <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;"><span>Food &amp; Dining</span><span style="font-family:'IBM Plex Mono',monospace;font-weight:600;">₹8,200 <span style="color:var(--mm-text-muted);font-weight:400;">38%</span></span></div>
+                    <div class="vis-bar"><div class="vis-fill" style="width:38%;background:var(--mm-blue);"></div></div>
+                </div>
+                <div style="margin-bottom:14px;">
+                    <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;"><span>Utilities</span><span style="font-family:'IBM Plex Mono',monospace;font-weight:600;">₹5,100 <span style="color:var(--mm-text-muted);font-weight:400;">24%</span></span></div>
+                    <div class="vis-bar"><div class="vis-fill" style="width:24%;background:var(--mm-green);"></div></div>
+                </div>
+                <div style="margin-bottom:14px;">
+                    <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;"><span>Shopping</span><span style="font-family:'IBM Plex Mono',monospace;font-weight:600;">₹3,850 <span style="color:var(--mm-text-muted);font-weight:400;">18%</span></span></div>
+                    <div class="vis-bar"><div class="vis-fill" style="width:18%;background:var(--mm-gold);"></div></div>
                 </div>
             </div>
         </div>
-    </section>
 
-    <!-- SPENDING EXPERIMENT -->
-    <section class="section-padding">
-        <div class="container">
-            <div class="row align-items-center g-5 flex-lg-row-reverse">
-                <div class="col-lg-5">
-                    <div class="hero-eyebrow text-success">SPENDING EXPERIMENT</div>
-                    <h2 class="section-title">What if you changed one spending habit?</h2>
-                    <p class="text-muted mb-4" style="font-size: 18px;">Choose a spending category, set a reduction target, and see what the change could mean over a month or a year.</p>
-                    {% if user.is_authenticated %}
-                        <a href="{% url 'smart_spending' %}" class="btn-primary-custom text-decoration-none d-inline-block">Try a Spending Experiment</a>
-                    {% else %}
-                        <a href="{% url 'register' %}" class="btn-primary-custom text-decoration-none d-inline-block">Try a Spending Experiment</a>
-                    {% endif %}
-                </div>
-                <div class="col-lg-7">
-                    <div class="mockup-card">
-                        <div class="p-3 bg-light rounded mb-4">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="fw-semibold">Category: Shopping</span>
-                                <span class="badge bg-white text-dark border">Example</span>
-                            </div>
-                            <div class="text-muted" style="font-size: 14px;">Typical spending: <span class="fw-bold text-dark">₹1,500 / month</span></div>
-                        </div>
-                        
-                        <div class="mb-4">
-                            <div class="text-muted mb-2" style="font-size: 13px;">Try reducing by:</div>
-                            <div class="d-flex gap-2">
-                                <span class="btn btn-outline-secondary btn-sm rounded-pill px-3">10%</span>
-                                <span class="btn btn-primary btn-sm rounded-pill px-3">20%</span>
-                                <span class="btn btn-outline-secondary btn-sm rounded-pill px-3">30%</span>
-                            </div>
-                        </div>
-                        
-                        <div class="row text-center g-3">
-                            <div class="col-4">
-                                <div class="bg-light p-3 rounded h-100">
-                                    <div class="text-muted" style="font-size: 11px;">New target</div>
-                                    <div class="fw-bold" style="color: var(--navy);">₹1,200</div>
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="bg-light p-3 rounded h-100">
-                                    <div class="text-muted" style="font-size: 11px;">Monthly diff</div>
-                                    <div class="fw-bold text-success">₹300</div>
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="bg-light p-3 rounded h-100 border border-success border-opacity-25 bg-success bg-opacity-10">
-                                    <div class="text-success" style="font-size: 11px;">Annual diff</div>
-                                    <div class="fw-bold text-success fs-5">₹3,600</div>
-                                </div>
-                            </div>
-                        </div>
+        <!-- Plan -->
+        <div class="module-row" style="margin-bottom:0;">
+            <div class="module-text">
+                <div class="module-name">Plan</div>
+                <h3 class="module-title">See your future, clearly.</h3>
+                <p class="module-desc">Set goals with targets and deadlines. Add recurring money rules to auto-project your cash flow. Know your balance 90 days from now.</p>
+                <a href="{% url 'register' %}" class="module-link">Start planning →</a>
+            </div>
+            <div class="module-visual">
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--mm-text-muted);margin-bottom:16px;">Cash Flow Forecast</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--mm-border);border-radius:10px;overflow:hidden;margin-bottom:16px;">
+                    <div style="background:var(--mm-bg-elevated);padding:14px 16px;">
+                        <div style="font-size:10px;color:var(--mm-text-muted);margin-bottom:4px;">Current Balance</div>
+                        <div style="font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:600;">₹42,500</div>
+                    </div>
+                    <div style="background:var(--mm-bg-elevated);padding:14px 16px;">
+                        <div style="font-size:10px;color:var(--mm-blue);margin-bottom:4px;">Projected (30d)</div>
+                        <div style="font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:600;color:var(--mm-blue);">₹56,200</div>
                     </div>
                 </div>
+                <div style="font-size:12px;color:var(--mm-text-muted);font-style:italic;">Based on 3 active recurring rules</div>
             </div>
         </div>
-    </section>
+    </div>
+</section>
 
-    <!-- SIMPLE TRACKING SECTION -->
-    <section class="section-padding-sm bg-navy" style="background-color: var(--navy); color: #fff;">
-        <div class="container text-center">
-            <h2 class="mb-5" style="color: #fff;">Everything starts with knowing your numbers.</h2>
-            <div class="row justify-content-center g-4 mb-5">
-                <div class="col-md-3 col-10">
-                    <div class="p-4 rounded" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
-                        <div class="text-white-50 mb-1" style="font-size: 14px;">Income</div>
-                        <div class="fs-3 fw-bold text-success">+₹50,000</div>
-                    </div>
-                </div>
-                <div class="col-md-3 col-10">
-                    <div class="p-4 rounded" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
-                        <div class="text-white-50 mb-1" style="font-size: 14px;">Expenses</div>
-                        <div class="fs-3 fw-bold" style="color: #F87171;">−₹32,500</div>
-                    </div>
-                </div>
-                <div class="col-md-3 col-10">
-                    <div class="p-4 rounded" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
-                        <div class="text-white-50 mb-1" style="font-size: 14px;">Balance</div>
-                        <div class="fs-3 fw-bold text-white">₹17,500</div>
-                    </div>
-                </div>
-            </div>
-            <p class="text-white-50 mx-auto" style="max-width: 600px; font-size: 18px;">
-                "Track the basics first. DhanTrack turns those records into a clearer picture of your finances."
-            </p>
+<!-- CTA -->
+<section class="l-cta">
+    <div>
+        <h2 class="l-cta-title">Your money companion,<br>ready when you are.</h2>
+        <p class="l-cta-sub">Join MoneyMitra and take control of your personal finances today.</p>
+        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+            <a href="{% url 'register' %}" class="hero-btn-primary">Create free account</a>
+            <a href="{% url 'login' %}" class="hero-btn-ghost">Sign in</a>
         </div>
-    </section>
+    </div>
+</section>
 
-    <!-- HOW IT WORKS -->
-    <section id="how-it-works" class="section-padding">
-        <div class="container">
-            <div class="row g-5">
-                <div class="col-md-4">
-                    <div class="step-num">01</div>
-                    <h4 class="step-title">Track</h4>
-                    <p class="text-muted">Add your income and expenses securely in one organized ledger.</p>
-                </div>
-                <div class="col-md-4">
-                    <div class="step-num">02</div>
-                    <h4 class="step-title">Understand</h4>
-                    <p class="text-muted">Explore Smart Spending and Spending DNA to reveal the real story behind your numbers.</p>
-                </div>
-                <div class="col-md-4">
-                    <div class="step-num">03</div>
-                    <h4 class="step-title">Improve</h4>
-                    <p class="text-muted">Use clear insights and Spending Experiments to make intentional financial changes.</p>
-                </div>
-            </div>
-        </div>
-    </section>
+<!-- Footer -->
+<footer class="l-footer" style="max-width:1200px;margin:0 auto;">
+    <div class="l-footer-text">© 2024 MoneyMitra · Your money companion.</div>
+    <div class="l-footer-links">
+        <a href="{% url 'login' %}" class="l-footer-link">Sign in</a>
+        <a href="{% url 'register' %}" class="l-footer-link">Register</a>
+    </div>
+</footer>
 
-    <!-- FINAL CTA -->
-    <section class="section-padding bg-alternate text-center">
-        <div class="container">
-            <h2 class="section-title mb-4">Start understanding your money today.</h2>
-            <p class="text-muted mx-auto mb-5" style="max-width: 600px; font-size: 18px;">
-                Track your income, understand your spending, and make more intentional financial decisions with DhanTrack.
-            </p>
-            <div class="d-flex justify-content-center gap-3">
-                {% if user.is_authenticated %}
-                    <a href="{% url 'dashboard' %}" class="btn-primary-custom text-decoration-none">Open Dashboard</a>
-                {% else %}
-                    <a href="{% url 'register' %}" class="btn-primary-custom text-decoration-none">Get Started Free</a>
-                    <a href="{% url 'login' %}" class="btn-outline-custom text-decoration-none bg-white">Log In</a>
-                {% endif %}
-            </div>
-        </div>
-    </section>
-
-    <!-- FOOTER -->
-    <footer>
-        <div class="container">
-            <div class="row border-bottom border-secondary pb-4 mb-4 g-4">
-                <div class="col-md-6">
-                    <div class="footer-brand d-flex align-items-center mb-2">
-                        <img src="{% static 'expenses/images/dhan_track_logo.png' %}" alt="DhanTrack Logo" height="40" class="me-2 rounded">
-                        <span>DhanTrack</span>
-                    </div>
-                    <div class="footer-tagline">Track • Understand • Grow</div>
-                </div>
-                <div class="col-md-6 d-flex flex-column justify-content-center text-md-end mt-4 mt-md-0">
-                    <div class="d-flex flex-wrap justify-content-md-end gap-4">
-                        <a href="#features" class="text-decoration-none">Features</a>
-                        <a href="#how-it-works" class="text-decoration-none">How it works</a>
-                        <a href="#smart-spending" class="text-decoration-none">Smart Spending</a>
-                        {% if not user.is_authenticated %}
-                            <a href="{% url 'login' %}" class="text-decoration-none">Login</a>
-                            <a href="{% url 'register' %}" class="text-decoration-none">Register</a>
-                        {% else %}
-                            <a href="{% url 'dashboard' %}" class="text-decoration-none">Dashboard</a>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-            <div class="text-center" style="color: #64748B; font-size: 13px;">
-                © 2026 DhanTrack. All rights reserved.
-            </div>
-        </div>
-    </footer>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -1,0 +1,453 @@
+{% extends 'expenses/base.html' %}
+{% block title %}Reports — MoneyMitra{% endblock %}
+
+{% block content %}
+<style>
+    /* ── Background Animations ── */
+    @keyframes float-glow-1 {
+        0% { opacity: 0.4; transform: scale(1) translate(0, 0); }
+        50% { opacity: 1; transform: scale(1.15) translate(30px, -20px); }
+        100% { opacity: 0.4; transform: scale(1) translate(0, 0); }
+    }
+    @keyframes float-glow-2 {
+        0% { opacity: 0.4; transform: scale(1) translate(0, 0); }
+        50% { opacity: 1; transform: scale(1.2) translate(-30px, 20px); }
+        100% { opacity: 0.4; transform: scale(1) translate(0, 0); }
+    }
+    @keyframes float-arc-1 {
+        0% { opacity: 0.6; transform: scale(1) rotate(0deg) translate(0, 0); }
+        50% { opacity: 1; transform: scale(1.05) rotate(5deg) translate(20px, 15px); }
+        100% { opacity: 0.6; transform: scale(1) rotate(0deg) translate(0, 0); }
+    }
+    @keyframes float-arc-2 {
+        0% { opacity: 0.6; transform: scale(1) rotate(0deg) translate(0, 0); }
+        50% { opacity: 1; transform: scale(1.05) rotate(-5deg) translate(-25px, -15px); }
+        100% { opacity: 0.6; transform: scale(1) rotate(0deg) translate(0, 0); }
+    }
+    .bg-glow-1 { animation: float-glow-1 12s infinite ease-in-out; }
+    .bg-glow-2 { animation: float-glow-2 15s infinite ease-in-out; }
+    .bg-arc-1 { animation: float-arc-1 14s infinite ease-in-out; }
+    .bg-arc-2 { animation: float-arc-2 18s infinite ease-in-out; }
+    .bg-arc-3 { animation: float-arc-1 22s infinite ease-in-out reverse; }
+
+    /* ── Hero ── */
+    .rpt-title {
+        font-size: 38px; font-weight: 800; letter-spacing: -0.04em; line-height: 1.1;
+        background: linear-gradient(135deg, #ffffff 0%, #f3e3c3 55%, #DDA751 100%);
+        -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    @media (max-width: 768px) { .rpt-title { font-size: 28px; } }
+
+    /* ── Controls ── */
+    .rpt-select {
+        background: rgba(255,255,255,0.04) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        border-radius: 10px !important;
+        color: #fff !important;
+        padding: 8px 14px !important;
+        font-size: 13px !important;
+        font-weight: 600 !important;
+        transition: border-color 0.25s ease, box-shadow 0.25s ease !important;
+        cursor: pointer;
+    }
+    .rpt-select:hover { border-color: rgba(221,167,81,0.4) !important; }
+    .rpt-select:focus {
+        border-color: rgba(221,167,81,0.55) !important;
+        box-shadow: 0 0 0 3px rgba(221,167,81,0.12) !important;
+        outline: none !important;
+    }
+
+    /* ── Glass panel ── */
+    .rpt-panel {
+        position: relative;
+        background: rgba(20, 20, 22, 0.4);
+        backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 20px;
+        box-shadow: 0 12px 40px rgba(0,0,0,0.3), inset 0 0 0 1px rgba(255,255,255,0.04);
+        overflow: hidden;
+        transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .rpt-panel:hover {
+        border-color: rgba(255,255,255,0.12);
+        box-shadow: 0 16px 48px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(255,255,255,0.06);
+    }
+    .rpt-panel::before {
+        content: ""; position: absolute; top: 0; left: 24px; right: 24px; height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(221,167,81,0.5), transparent);
+        pointer-events: none; z-index: 1;
+    }
+
+    /* ── Metric triptych ── */
+    .rpt-metrics {
+        display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px;
+        background: rgba(255,255,255,0.06);
+        border-radius: 20px; overflow: hidden;
+    }
+    .rpt-metric {
+        background: rgba(20,20,22,0.5);
+        backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+        padding: 28px 32px;
+        transition: background 0.3s ease;
+    }
+    .rpt-metric:hover { background: rgba(30,30,34,0.6); }
+    .rpt-metric-label {
+        font-size: 10px; font-weight: 700; text-transform: uppercase;
+        letter-spacing: 0.12em; margin-bottom: 12px;
+    }
+    .rpt-metric-value {
+        font-family: 'IBM Plex Mono', monospace; font-size: 28px; font-weight: 600;
+        letter-spacing: -0.03em; margin-bottom: 6px;
+    }
+    .rpt-metric-sub { font-size: 12px; }
+    @media (max-width: 768px) {
+        .rpt-metrics { grid-template-columns: 1fr; }
+        .rpt-metric { padding: 20px 24px; }
+        .rpt-metric-value { font-size: 22px; }
+    }
+
+    /* ── Section labels ── */
+    .rpt-section-label {
+        display: flex; align-items: center; gap: 12px;
+        font-size: 11px; font-weight: 700; text-transform: uppercase;
+        letter-spacing: 0.15em; color: #a1a1aa; margin-bottom: 20px;
+    }
+    .rpt-section-label::after {
+        content: ""; flex: 1; height: 1px;
+        background: linear-gradient(90deg, rgba(221,167,81,0.35), transparent);
+    }
+
+    /* ── Bar tracks ── */
+    .rpt-bar-track {
+        height: 5px; background: rgba(255,255,255,0.06); border-radius: 4px;
+        overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.3);
+    }
+    .rpt-bar-fill {
+        height: 100%; border-radius: 4px; width: 0;
+        transition: width 1.2s cubic-bezier(0.2,0.8,0.2,1);
+    }
+    .rpt-bar-fill.gold {
+        background: linear-gradient(90deg, #B67B29, #DDA751);
+        box-shadow: 0 0 8px rgba(221,167,81,0.4);
+    }
+    .rpt-bar-fill.green {
+        background: linear-gradient(90deg, #16a34a, #22c55e);
+        box-shadow: 0 0 8px rgba(34,197,94,0.4);
+    }
+    .rpt-bar-fill.amber {
+        background: linear-gradient(90deg, #d4af37, #f3d08c);
+        box-shadow: 0 0 8px rgba(212,175,55,0.4);
+    }
+    .rpt-bar-fill.blue {
+        background: linear-gradient(90deg, #2563eb, #3b82f6);
+        box-shadow: 0 0 8px rgba(59,130,246,0.4);
+    }
+
+    /* ── Insight grid ── */
+    .rpt-insight-grid {
+        display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px;
+        background: rgba(255,255,255,0.06);
+    }
+    .rpt-insight-cell {
+        background: rgba(15,15,18,0.6);
+        backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+        padding: 22px 24px;
+        transition: background 0.3s ease;
+    }
+    .rpt-insight-cell:hover { background: rgba(25,25,30,0.7); }
+    @media (max-width: 768px) {
+        .rpt-insight-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── CTA ── */
+    .rpt-cta {
+        position: relative;
+        background: rgba(221,167,81,0.04);
+        backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+        border: 1px dashed rgba(221,167,81,0.3);
+        border-radius: 20px;
+        padding: 36px 28px;
+        text-align: center;
+        transition: border-color 0.3s ease, background 0.3s ease;
+    }
+    .rpt-cta:hover {
+        border-color: rgba(221,167,81,0.5);
+        background: rgba(221,167,81,0.06);
+    }
+
+    /* ── Buttons ── */
+    .mm-btn-gold {
+        background: linear-gradient(135deg, #DDA751 0%, #B67B29 100%) !important;
+        border: none !important; color: #000 !important; font-weight: 600 !important;
+        box-shadow: 0 4px 16px rgba(221,167,81,0.4) !important;
+        transition: all 0.3s ease !important;
+    }
+    .mm-btn-gold:hover {
+        box-shadow: 0 6px 20px rgba(221,167,81,0.6) !important;
+        transform: translateY(-2px) !important; color: #000 !important;
+    }
+    .mm-btn-primary {
+        background: linear-gradient(135deg, #DDA751 0%, #B67B29 100%) !important;
+        border: none !important; color: #000 !important; font-weight: 600 !important;
+        box-shadow: 0 4px 16px rgba(221,167,81,0.4) !important;
+        transition: all 0.3s ease !important;
+    }
+    .mm-btn-primary:hover {
+        box-shadow: 0 6px 20px rgba(221,167,81,0.6) !important;
+        transform: translateY(-2px) !important;
+    }
+
+    /* ── Scroll reveal ── */
+    .reveal-item {
+        opacity: 0; transform: translateY(28px);
+        transition: opacity 0.8s cubic-bezier(0.2,0.8,0.2,1), transform 0.8s cubic-bezier(0.2,0.8,0.2,1);
+    }
+    .reveal-item.is-visible { opacity: 1; transform: none; }
+
+    @media (prefers-reduced-motion: reduce) {
+        .bg-glow-1, .bg-glow-2, .bg-arc-1, .bg-arc-2, .bg-arc-3 { animation: none; }
+        .reveal-item { opacity: 1; transform: none; transition: none; }
+    }
+</style>
+
+<div class="mm-page" style="position: relative; z-index: 1; min-height: 80vh;">
+    <!-- Cinematic Orbital Background -->
+    <div style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; overflow: hidden; z-index: -1; pointer-events: none; background-color: #030405;">
+        <div class="bg-glow-1" style="position: absolute; top: 20%; left: -20%; width: 50vw; height: 50vw; border-radius: 50%; background: radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%); filter: blur(100px);"></div>
+        <div class="bg-glow-2" style="position: absolute; top: -10%; right: -20%; width: 60vw; height: 60vw; border-radius: 50%; background: radial-gradient(circle, rgba(212,175,55,0.08) 0%, transparent 70%); filter: blur(100px);"></div>
+        <div class="bg-arc-1" style="position: absolute; top: 10%; left: -30vw; width: 70vw; height: 70vw; border-radius: 50%; border: 1px solid rgba(59,130,246,0.4); box-shadow: inset 0 0 40px rgba(59,130,246,0.15), 0 0 60px rgba(59,130,246,0.2);"></div>
+        <div class="bg-arc-2" style="position: absolute; top: -20vh; right: -10vw; width: 60vw; height: 60vw; border-radius: 50%; border: 1px solid rgba(212,175,55,0.4); box-shadow: inset 0 0 40px rgba(212,175,55,0.15), 0 0 60px rgba(212,175,55,0.2);"></div>
+        <div class="bg-arc-3" style="position: absolute; top: -10vh; right: -20vw; width: 80vw; height: 80vw; border-radius: 50%; border: 1px solid rgba(212,175,55,0.2); box-shadow: inset 0 0 20px rgba(212,175,55,0.05), 0 0 30px rgba(212,175,55,0.1);"></div>
+        <div style="position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, transparent 30%, rgba(3,4,5,0.8) 100%);"></div>
+    </div>
+
+    <!-- Hero -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start mb-5" style="position: relative; z-index: 2;">
+        <div>
+            <div class="mm-page-eyebrow">Grow</div>
+            <h1 class="rpt-title">Reports</h1>
+            <p class="mm-page-subtitle">Financial overview based on actual recorded data.</p>
+        </div>
+        <div class="mt-3 mt-md-0 d-flex gap-2 align-items-center">
+            <form method="get" action="{% url 'reports' %}" class="d-flex align-items-center gap-2">
+                <select name="period" class="rpt-select" onchange="this.form.submit()">
+                    <option value="current_month" {% if period_value == 'current_month' %}selected{% endif %}>Current Month</option>
+                    <option value="previous_month" {% if period_value == 'previous_month' %}selected{% endif %}>Previous Month</option>
+                    <option value="last_3_months" {% if period_value == 'last_3_months' %}selected{% endif %}>Last 3 Months</option>
+                    <option value="current_year" {% if period_value == 'current_year' %}selected{% endif %}>Current Year</option>
+                </select>
+            </form>
+            <a href="{% url 'download_audit_pdf' %}" class="mm-btn mm-btn-gold mm-btn-sm">Download PDF</a>
+        </div>
+    </div>
+
+    <!-- Period label -->
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#a1a1aa;margin-bottom:28px;position:relative;z-index:2;" class="reveal-item">
+        {{ start_date|date:"d M Y" }} — {{ end_date|date:"d M Y" }}
+    </div>
+
+    <!-- Top Metrics -->
+    <div class="rpt-metrics reveal-item" style="margin-bottom:36px;">
+        <div class="rpt-metric">
+            <div class="rpt-metric-label" style="color:#a1a1aa;">Total Income</div>
+            <div class="rpt-metric-value" style="color:var(--mm-green);text-shadow:0 0 16px rgba(34,197,94,0.3);">₹{{ total_income|floatformat:2 }}</div>
+            {% if inc_pct_change != None %}
+            <div class="rpt-metric-sub" style="color:{% if inc_diff > 0 %}var(--mm-green){% elif inc_diff < 0 %}var(--mm-red){% else %}var(--mm-text-muted){% endif %};">
+                {% if inc_diff > 0 %}↑{% elif inc_diff < 0 %}↓{% endif %} {{ inc_pct_change|floatformat:1 }}% vs previous
+            </div>
+            {% else %}
+            <div class="rpt-metric-sub" style="color:var(--mm-text-muted);">More history needed</div>
+            {% endif %}
+        </div>
+        <div class="rpt-metric">
+            <div class="rpt-metric-label" style="color:#a1a1aa;">Total Expenses</div>
+            <div class="rpt-metric-value" style="color:var(--mm-red);text-shadow:0 0 16px rgba(255,69,58,0.3);">₹{{ total_expense|floatformat:2 }}</div>
+            {% if exp_pct_change != None %}
+            <div class="rpt-metric-sub" style="color:{% if exp_diff < 0 %}var(--mm-green){% elif exp_diff > 0 %}var(--mm-red){% else %}var(--mm-text-muted){% endif %};">
+                {% if exp_diff > 0 %}↑{% elif exp_diff < 0 %}↓{% endif %} {{ exp_pct_change|floatformat:1 }}% vs previous
+            </div>
+            {% else %}
+            <div class="rpt-metric-sub" style="color:var(--mm-text-muted);">More history needed</div>
+            {% endif %}
+        </div>
+        <div class="rpt-metric" style="border-left:2px solid {% if net_cash_flow >= 0 %}rgba(34,197,94,0.4){% else %}rgba(255,69,58,0.4){% endif %};">
+            <div class="rpt-metric-label" style="color:{% if net_cash_flow >= 0 %}var(--mm-green){% else %}var(--mm-red){% endif %};">Net Cash Flow</div>
+            <div class="rpt-metric-value" style="color:{% if net_cash_flow >= 0 %}var(--mm-green){% else %}var(--mm-red){% endif %};text-shadow:0 0 16px {% if net_cash_flow >= 0 %}rgba(34,197,94,0.3){% else %}rgba(255,69,58,0.3){% endif %};">₹{{ net_cash_flow|floatformat:2 }}</div>
+            <div class="rpt-metric-sub" style="color:var(--mm-text-muted);">{% if net_cash_flow >= 0 %}Net positive{% else %}Net negative{% endif %}</div>
+        </div>
+    </div>
+
+    <!-- Breakdown Charts -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-4">
+            <div class="rpt-panel reveal-item" style="padding:28px;height:100%;">
+                <div class="rpt-section-label" style="margin-bottom:24px;">Top Spending Categories</div>
+                {% if category_breakdown %}
+                {% for c in category_breakdown|slice:":5" %}
+                <div style="margin-bottom:20px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:13px;">
+                        <span style="font-weight:600;color:#fff;">{{ c.category }}</span>
+                        <span style="font-family:'IBM Plex Mono',monospace;font-weight:600;color:#fff;">₹{{ c.amount|floatformat:2 }} <span style="font-weight:400;color:#a1a1aa;">{{ c.percentage }}%</span></span>
+                    </div>
+                    <div class="rpt-bar-track">
+                        <div class="rpt-bar-fill gold" data-width="{{ c.percentage }}"></div>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <p style="font-size:13px;color:var(--mm-text-muted);">No expenses recorded.</p>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="rpt-panel reveal-item" style="padding:28px;height:100%;">
+                <div class="rpt-section-label" style="margin-bottom:24px;">Expense Intent Breakdown</div>
+                {% if intent_breakdown %}
+                {% for i in intent_breakdown|slice:":5" %}
+                <div style="margin-bottom:20px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:13px;">
+                        <span style="font-weight:600;color:#fff;">{{ i.intent }}</span>
+                        <span style="font-family:'IBM Plex Mono',monospace;font-weight:600;color:#fff;">₹{{ i.amount|floatformat:2 }} <span style="font-weight:400;color:#a1a1aa;">{{ i.percentage }}%</span></span>
+                    </div>
+                    <div class="rpt-bar-track">
+                        <div class="rpt-bar-fill {% if i.intent == 'Need' %}green{% elif i.intent == 'Want' %}amber{% else %}blue{% endif %}" data-width="{{ i.percentage }}"></div>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <p style="font-size:13px;color:var(--mm-text-muted);">No expenses recorded.</p>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="rpt-panel reveal-item" style="padding:28px;height:100%;">
+                <div class="rpt-section-label" style="margin-bottom:24px;">Income Type Breakdown</div>
+                {% if income_type_breakdown %}
+                {% for it in income_type_breakdown|slice:":5" %}
+                <div style="margin-bottom:20px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:13px;">
+                        <span style="font-weight:600;color:#fff;">{{ it.income_type }}</span>
+                        <span style="font-family:'IBM Plex Mono',monospace;font-weight:600;color:#fff;">₹{{ it.amount|floatformat:2 }} <span style="font-weight:400;color:#a1a1aa;">{{ it.percentage }}%</span></span>
+                    </div>
+                    <div class="rpt-bar-track">
+                        <div class="rpt-bar-fill green" data-width="{{ it.percentage }}"></div>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <p style="font-size:13px;color:var(--mm-text-muted);">No incomes recorded.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Transaction Insights -->
+    <div class="rpt-panel reveal-item" style="margin-bottom:28px;">
+        <div style="padding:20px 28px;border-bottom:1px solid rgba(255,255,255,0.06);">
+            <div class="rpt-section-label" style="margin-bottom:0;">Transaction Insights</div>
+        </div>
+        <div class="rpt-insight-grid">
+            <div class="rpt-insight-cell">
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#a1a1aa;margin-bottom:10px;">Total Transactions</div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:600;color:#fff;">{{ expense_count|add:income_count }}</div>
+                <div style="font-size:11px;color:var(--mm-text-muted);margin-top:6px;">{{ expense_count }} Exp · {{ income_count }} Inc</div>
+            </div>
+            <div class="rpt-insight-cell">
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#a1a1aa;margin-bottom:10px;">Average Expense</div>
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:600;color:#fff;">₹{{ average_expense|floatformat:2 }}</div>
+            </div>
+            <div class="rpt-insight-cell">
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#a1a1aa;margin-bottom:10px;">Largest Expense</div>
+                {% if largest_expense %}
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:600;color:#fff;">₹{{ largest_expense.amount|floatformat:2 }}</div>
+                <div style="font-size:11px;color:var(--mm-text-muted);margin-top:6px;">{{ largest_expense.description }} · {{ largest_expense.date|date:"d M" }}</div>
+                {% else %}
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:24px;color:var(--mm-text-muted);">N/A</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recurring + Goals -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+            <div class="rpt-panel reveal-item" style="padding:28px;height:100%;">
+                <div style="font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#DDA751;margin-bottom:4px;">Expected / Planned</div>
+                <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:16px;">Recurring Money Summary</div>
+                <p style="font-size:13px;color:var(--mm-text-secondary);margin-bottom:24px;">Expected future activity based on active recurring rules.</p>
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#a1a1aa;margin-bottom:8px;">Monthly Inflow</div>
+                        <div style="font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;color:var(--mm-green);text-shadow:0 0 12px rgba(34,197,94,0.3);">₹{{ recurring_summary.expected_monthly_inflow|floatformat:2 }}</div>
+                        <div style="font-size:11px;color:var(--mm-text-muted);margin-top:6px;">{{ recurring_summary.active_income_count }} active rules</div>
+                    </div>
+                    <div class="col-6">
+                        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#a1a1aa;margin-bottom:8px;">Monthly Outflow</div>
+                        <div style="font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;color:var(--mm-red);text-shadow:0 0 12px rgba(255,69,58,0.3);">₹{{ recurring_summary.expected_monthly_outflow|floatformat:2 }}</div>
+                        <div style="font-size:11px;color:var(--mm-text-muted);margin-top:6px;">{{ recurring_summary.active_expense_count }} active rules</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="rpt-panel reveal-item" style="padding:28px;height:100%;">
+                <div style="font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#DDA751;margin-bottom:4px;">Target</div>
+                <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:16px;">Goals Summary</div>
+                <p style="font-size:13px;color:var(--mm-text-secondary);margin-bottom:24px;">Money reserved for specific targets — separate from cash flow.</p>
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#a1a1aa;margin-bottom:8px;">Total Target</div>
+                        <div style="font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;color:#DDA751;text-shadow:0 0 12px rgba(221,167,81,0.3);">₹{{ goals_summary.total_target|floatformat:2 }}</div>
+                        <div style="font-size:11px;color:var(--mm-text-muted);margin-top:6px;">{{ goals_summary.active_count }} active goals</div>
+                    </div>
+                    <div class="col-6">
+                        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#a1a1aa;margin-bottom:8px;">Accumulated</div>
+                        <div style="font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;color:#fff;">₹{{ goals_summary.total_current|floatformat:2 }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Forecast CTA -->
+    <div class="rpt-cta reveal-item">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#DDA751;margin-bottom:10px;">Projected</div>
+        <div style="font-size:18px;font-weight:700;color:#fff;margin-bottom:10px;">Want to see where your money is heading?</div>
+        <p style="font-size:13px;color:var(--mm-text-secondary);margin-bottom:24px;">View your projected cash flow timeline mixing actuals with expected records.</p>
+        <a href="{% url 'forecast' %}" class="mm-btn mm-btn-primary">View Forecast</a>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate bars when they come into view
+    const barObserver = new IntersectionObserver((entries, obs) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                setTimeout(() => {
+                    entry.target.style.width = entry.target.getAttribute('data-width') + '%';
+                }, 200);
+                obs.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.2 });
+    document.querySelectorAll('[data-width]').forEach(el => barObserver.observe(el));
+
+    // Scroll reveal
+    const revealElements = document.querySelectorAll('.reveal-item');
+    revealElements.forEach((el, i) => {
+        el.style.transitionDelay = ((i % 4) * 0.1) + 's';
+    });
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+            } else {
+                entry.target.classList.remove('is-visible');
+            }
+        });
+    }, { root: null, rootMargin: '0px 0px -40px 0px', threshold: 0.1 });
+    revealElements.forEach(el => observer.observe(el));
+});
+</script>
+{% endblock %}

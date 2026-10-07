@@ -1,0 +1,339 @@
+{% extends 'expenses/base.html' %}
+{% block title %}Cash Flow Forecast — MoneyMitra{% endblock %}
+
+{% block content %}
+<style>
+    /* ── Background Animations ── */
+    @keyframes float-glow-1 {
+        0% { opacity: 0.4; transform: scale(1) translate(0, 0); }
+        50% { opacity: 1; transform: scale(1.15) translate(30px, -20px); }
+        100% { opacity: 0.4; transform: scale(1) translate(0, 0); }
+    }
+    @keyframes float-glow-2 {
+        0% { opacity: 0.4; transform: scale(1) translate(0, 0); }
+        50% { opacity: 1; transform: scale(1.2) translate(-30px, 20px); }
+        100% { opacity: 0.4; transform: scale(1) translate(0, 0); }
+    }
+    @keyframes float-arc-1 {
+        0% { opacity: 0.6; transform: scale(1) rotate(0deg) translate(0, 0); }
+        50% { opacity: 1; transform: scale(1.05) rotate(5deg) translate(20px, 15px); }
+        100% { opacity: 0.6; transform: scale(1) rotate(0deg) translate(0, 0); }
+    }
+    @keyframes float-arc-2 {
+        0% { opacity: 0.6; transform: scale(1) rotate(0deg) translate(0, 0); }
+        50% { opacity: 1; transform: scale(1.05) rotate(-5deg) translate(-25px, -15px); }
+        100% { opacity: 0.6; transform: scale(1) rotate(0deg) translate(0, 0); }
+    }
+    .bg-glow-1 { animation: float-glow-1 12s infinite ease-in-out; }
+    .bg-glow-2 { animation: float-glow-2 15s infinite ease-in-out; }
+    .bg-arc-1 { animation: float-arc-1 14s infinite ease-in-out; }
+    .bg-arc-2 { animation: float-arc-2 18s infinite ease-in-out; }
+    .bg-arc-3 { animation: float-arc-1 22s infinite ease-in-out reverse; }
+
+    /* ── Hero ── */
+    .fc-title {
+        font-size: 38px; font-weight: 800; letter-spacing: -0.04em; line-height: 1.1;
+        background: linear-gradient(135deg, #ffffff 0%, #f3e3c3 55%, #DDA751 100%);
+        -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    @media (max-width: 768px) { .fc-title { font-size: 28px; } }
+
+    /* ── Horizon select ── */
+    .fc-horizon-select {
+        background: rgba(255,255,255,0.04) !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        border-radius: 10px !important;
+        color: #fff !important;
+        padding: 8px 14px !important;
+        font-size: 13px !important;
+        font-weight: 600 !important;
+        transition: border-color 0.25s ease, box-shadow 0.25s ease !important;
+        cursor: pointer;
+    }
+    .fc-horizon-select:hover { border-color: rgba(221,167,81,0.4) !important; }
+    .fc-horizon-select:focus {
+        border-color: rgba(221,167,81,0.55) !important;
+        box-shadow: 0 0 0 3px rgba(221,167,81,0.12) !important;
+        outline: none !important;
+    }
+
+    /* ── Summary triptych ── */
+    .fc-metrics {
+        display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px;
+        background: rgba(255,255,255,0.06);
+        border-radius: 20px; overflow: hidden; margin-bottom: 48px;
+    }
+    .fc-metric {
+        background: rgba(20,20,22,0.5);
+        backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+        padding: 28px 32px; text-align: center;
+        transition: background 0.3s ease;
+    }
+    .fc-metric:hover { background: rgba(30,30,34,0.6); }
+    .fc-metric-label {
+        font-size: 10px; font-weight: 700; text-transform: uppercase;
+        letter-spacing: 0.12em; color: #a1a1aa; margin-bottom: 14px;
+    }
+    .fc-metric-label.gold { color: #DDA751; }
+    .fc-metric-value {
+        font-family: 'IBM Plex Mono', monospace; font-size: 28px; font-weight: 600;
+        letter-spacing: -0.03em; color: #fff;
+    }
+    .fc-metric-value.green { color: var(--mm-green); text-shadow: 0 0 16px rgba(34,197,94,0.3); }
+    .fc-metric-value.red { color: var(--mm-red); text-shadow: 0 0 16px rgba(255,69,58,0.3); }
+    .fc-metric-value.gold { color: #DDA751; text-shadow: 0 0 16px rgba(221,167,81,0.35); }
+    .fc-metric-sub { font-size: 12px; color: var(--mm-text-muted); margin-top: 8px; }
+    @media (max-width: 768px) {
+        .fc-metrics { grid-template-columns: 1fr; }
+        .fc-metric { padding: 20px 24px; }
+        .fc-metric-value { font-size: 22px; }
+    }
+
+    /* ── Timeline header ── */
+    .fc-timeline-header {
+        display: flex; align-items: center; justify-content: space-between;
+        margin-bottom: 20px;
+    }
+    .fc-timeline-title {
+        font-size: 16px; font-weight: 700; color: #fff; letter-spacing: -0.01em;
+    }
+    .fc-flow-tag {
+        font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+        padding: 4px 12px; border-radius: 8px;
+        background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+    }
+    .fc-flow-tag.in { color: var(--mm-green); }
+    .fc-flow-tag.out { color: var(--mm-red); }
+
+    /* ── Glass table ── */
+    .fc-table-wrap {
+        position: relative;
+        background: rgba(20, 20, 22, 0.4);
+        backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 20px;
+        box-shadow: 0 16px 48px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(255,255,255,0.04);
+        overflow: hidden;
+    }
+    .fc-table-wrap::before {
+        content: ""; position: absolute; top: 0; left: 32px; right: 32px; height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(221,167,81,0.5), transparent);
+        z-index: 1;
+    }
+    .fc-table { width: 100%; border-collapse: collapse; }
+    .fc-table th {
+        font-size: 10px; font-weight: 700; text-transform: uppercase;
+        letter-spacing: 0.12em; color: #a1a1aa;
+        padding: 16px 24px; border-bottom: 1px solid rgba(255,255,255,0.08);
+        background: rgba(255,255,255,0.02);
+    }
+    .fc-table td { padding: 16px 24px; }
+    .fc-table tbody tr {
+        border-top: 1px solid rgba(255,255,255,0.04);
+        transition: background 0.25s ease;
+    }
+    .fc-table tbody tr:hover { background: rgba(255,255,255,0.03); }
+    .fc-table tbody tr:first-child { border-top: none; }
+    .fc-table tbody tr.fc-today-row {
+        background: rgba(221,167,81,0.04);
+    }
+    .fc-table tbody tr.fc-today-row:hover { background: rgba(221,167,81,0.07); }
+
+    .fc-dot {
+        display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+        flex-shrink: 0;
+    }
+    .fc-dot.in { background: var(--mm-green); box-shadow: 0 0 8px var(--mm-green); }
+    .fc-dot.out { background: var(--mm-red); box-shadow: 0 0 8px var(--mm-red); }
+    .fc-dot.today { background: #DDA751; box-shadow: 0 0 8px rgba(221,167,81,0.6); }
+    .fc-type-tag {
+        font-size: 10px; font-weight: 700; text-transform: uppercase;
+        letter-spacing: 0.06em; padding: 2px 8px; border-radius: 6px;
+    }
+    .fc-type-tag.in { color: var(--mm-green); background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2); }
+    .fc-type-tag.out { color: var(--mm-red); background: rgba(255,69,58,0.08); border: 1px solid rgba(255,69,58,0.2); }
+
+    /* ── About note ── */
+    .fc-note {
+        margin-top: 24px; padding: 18px 24px;
+        background: rgba(255,255,255,0.025);
+        backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255,255,255,0.07);
+        border-radius: 14px;
+        font-size: 12px; color: var(--mm-text-muted); line-height: 1.6;
+    }
+
+    /* ── Empty state ── */
+    .fc-empty {
+        background: rgba(255,255,255,0.03);
+        backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    }
+
+    /* ── Buttons ── */
+    .mm-btn-primary {
+        background: linear-gradient(135deg, #DDA751 0%, #B67B29 100%) !important;
+        border: none !important; color: #000000 !important; font-weight: 600 !important;
+        box-shadow: 0 4px 16px rgba(221,167,81,0.4) !important;
+        transition: all 0.3s ease !important;
+    }
+    .mm-btn-primary:hover {
+        box-shadow: 0 6px 20px rgba(221,167,81,0.6) !important;
+        transform: translateY(-2px) !important;
+    }
+
+    /* ── Scroll reveal ── */
+    .reveal-item {
+        opacity: 0; transform: translateY(28px);
+        transition: opacity 0.8s cubic-bezier(0.2,0.8,0.2,1), transform 0.8s cubic-bezier(0.2,0.8,0.2,1);
+    }
+    .reveal-item.is-visible { opacity: 1; transform: none; }
+
+    @media (prefers-reduced-motion: reduce) {
+        .bg-glow-1, .bg-glow-2, .bg-arc-1, .bg-arc-2, .bg-arc-3 { animation: none; }
+        .reveal-item { opacity: 1; transform: none; transition: none; }
+    }
+</style>
+
+<div class="mm-page" style="position: relative; z-index: 1; min-height: 80vh;">
+    <!-- Cinematic Orbital Background -->
+    <div style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; overflow: hidden; z-index: -1; pointer-events: none; background-color: #030405;">
+        <div class="bg-glow-1" style="position: absolute; top: 20%; left: -20%; width: 50vw; height: 50vw; border-radius: 50%; background: radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%); filter: blur(100px);"></div>
+        <div class="bg-glow-2" style="position: absolute; top: -10%; right: -20%; width: 60vw; height: 60vw; border-radius: 50%; background: radial-gradient(circle, rgba(212,175,55,0.08) 0%, transparent 70%); filter: blur(100px);"></div>
+        <div class="bg-arc-1" style="position: absolute; top: 10%; left: -30vw; width: 70vw; height: 70vw; border-radius: 50%; border: 1px solid rgba(59,130,246,0.4); box-shadow: inset 0 0 40px rgba(59,130,246,0.15), 0 0 60px rgba(59,130,246,0.2);"></div>
+        <div class="bg-arc-2" style="position: absolute; top: -20vh; right: -10vw; width: 60vw; height: 60vw; border-radius: 50%; border: 1px solid rgba(212,175,55,0.4); box-shadow: inset 0 0 40px rgba(212,175,55,0.15), 0 0 60px rgba(212,175,55,0.2);"></div>
+        <div class="bg-arc-3" style="position: absolute; top: -10vh; right: -20vw; width: 80vw; height: 80vw; border-radius: 50%; border: 1px solid rgba(212,175,55,0.2); box-shadow: inset 0 0 20px rgba(212,175,55,0.05), 0 0 30px rgba(212,175,55,0.1);"></div>
+        <div style="position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, transparent 30%, rgba(3,4,5,0.8) 100%);"></div>
+    </div>
+
+    <!-- Hero -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start mb-5" style="position: relative; z-index: 2;">
+        <div>
+            <div class="mm-page-eyebrow">Plan</div>
+            <h1 class="fc-title">Cash Flow Forecast</h1>
+            <p class="mm-page-subtitle">Projected balance based on your recorded money activity.</p>
+        </div>
+        <div class="mt-3 mt-md-0">
+            <form method="get" class="d-flex align-items-center gap-2">
+                <label style="font-size:12px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:0.06em;white-space:nowrap;">Horizon</label>
+                <select name="days" class="fc-horizon-select" onchange="this.form.submit()">
+                    <option value="30" {% if horizon_days == 30 %}selected{% endif %}>30 Days</option>
+                    <option value="60" {% if horizon_days == 60 %}selected{% endif %}>60 Days</option>
+                    <option value="90" {% if horizon_days == 90 %}selected{% endif %}>90 Days</option>
+                </select>
+            </form>
+        </div>
+    </div>
+
+    <!-- Summary Metrics -->
+    <div class="fc-metrics reveal-item">
+        <div class="fc-metric">
+            <div class="fc-metric-label">Current Balance</div>
+            <div class="fc-metric-value">₹{{ current_balance|floatformat:2 }}</div>
+            <div class="fc-metric-sub">As of today</div>
+        </div>
+        <div class="fc-metric">
+            <div class="fc-metric-label">Net Expected Change</div>
+            <div class="fc-metric-value {% if net_change >= 0 %}green{% else %}red{% endif %}">
+                {% if net_change >= 0 %}+{% endif %}₹{{ net_change|floatformat:2 }}
+            </div>
+            <div class="fc-metric-sub">Over {{ horizon_days }} days</div>
+        </div>
+        <div class="fc-metric">
+            <div class="fc-metric-label gold">Projected Balance</div>
+            <div class="fc-metric-value gold">₹{{ projected_balance|floatformat:2 }}</div>
+            <div class="fc-metric-sub">By {{ end_date|date:"d M Y" }}</div>
+        </div>
+    </div>
+
+    <!-- Projection Timeline -->
+    <div class="fc-timeline-header reveal-item">
+        <div class="fc-timeline-title">Projection Timeline</div>
+        <div style="display:flex;gap:10px;">
+            <span class="fc-flow-tag in">↑ In: ₹{{ expected_in|floatformat:2 }}</span>
+            <span class="fc-flow-tag out">↓ Out: ₹{{ expected_out|floatformat:2 }}</span>
+        </div>
+    </div>
+
+    {% if not forecast_timeline %}
+    <div class="mm-empty fc-empty reveal-item">
+        <div class="mm-empty-title">No expected transactions</div>
+        <div class="mm-empty-body">Add recurring money records to project your future balance.</div>
+        <a href="{% url 'recurring_add' %}" class="mm-btn mm-btn-primary">Add Recurring Record</a>
+    </div>
+    {% else %}
+    <div class="fc-table-wrap reveal-item">
+        <table class="fc-table">
+            <thead>
+                <tr>
+                    <th style="width:18%;">Date</th>
+                    <th style="width:40%;">Event</th>
+                    <th style="text-align:right;width:20%;">Amount</th>
+                    <th style="text-align:right;width:22%;">Balance</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="fc-today-row">
+                    <td>
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <span class="fc-dot today"></span>
+                            <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#DDA751;font-weight:600;">Today</span>
+                        </div>
+                    </td>
+                    <td style="font-size:13px;color:var(--mm-text-secondary);font-style:italic;">Current actual balance</td>
+                    <td style="text-align:right;color:var(--mm-text-muted);">—</td>
+                    <td style="text-align:right;font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;color:#fff;">₹{{ current_balance|floatformat:2 }}</td>
+                </tr>
+                {% for item in forecast_timeline %}
+                <tr>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <span class="fc-dot {% if item.type == 'Income' %}in{% else %}out{% endif %}"></span>
+                            <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--mm-text-muted);">{{ item.date|date:"d M Y" }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <span style="font-size:14px;font-weight:600;color:#fff;">{{ item.description }}</span>
+                            <span class="fc-type-tag {% if item.type == 'Income' %}in{% else %}out{% endif %}">{{ item.type }}</span>
+                        </div>
+                    </td>
+                    <td style="text-align:right;font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;color:{% if item.type == 'Income' %}var(--mm-green){% else %}var(--mm-red){% endif %};">
+                        {% if item.type == 'Income' %}+{% else %}−{% endif %}₹{{ item.amount|floatformat:2 }}
+                    </td>
+                    <td style="text-align:right;font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;color:{% if item.running_balance < 0 %}var(--mm-red){% else %}#DDA751{% endif %};">
+                        ₹{{ item.running_balance|floatformat:2 }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="fc-note reveal-item">
+        <strong style="color:#DDA751;">About this forecast</strong> — This is a calculated projection using your actual current balance with expected recurring income and expenses applied forward. Goals do not impact this calculation as they represent targets, not cash movement.
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const revealElements = document.querySelectorAll('.reveal-item');
+    revealElements.forEach((el, i) => {
+        el.style.transitionDelay = (i * 0.12) + 's';
+    });
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+            } else {
+                entry.target.classList.remove('is-visible');
+            }
+        });
+    }, { root: null, rootMargin: '0px 0px -40px 0px', threshold: 0.1 });
+    revealElements.forEach(el => observer.observe(el));
+});
+</script>
+{% endblock %}

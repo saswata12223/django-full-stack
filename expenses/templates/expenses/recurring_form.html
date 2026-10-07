@@ -1,5 +1,5 @@
 {% extends 'expenses/base.html' %}
-{% block title %}Add Expense — MoneyMitra{% endblock %}
+{% block title %}{{ title }} — MoneyMitra{% endblock %}
 
 {% block content %}
 <style>
@@ -24,13 +24,13 @@
         50% { opacity: 1; transform: scale(1.05) rotate(-5deg) translate(-25px, -15px); }
         100% { opacity: 0.6; transform: scale(1) rotate(0deg) translate(0, 0); }
     }
-    
     .bg-glow-1 { animation: float-glow-1 12s infinite ease-in-out; }
     .bg-glow-2 { animation: float-glow-2 15s infinite ease-in-out; }
     .bg-arc-1 { animation: float-arc-1 14s infinite ease-in-out; }
     .bg-arc-2 { animation: float-arc-2 18s infinite ease-in-out; }
     .bg-arc-3 { animation: float-arc-1 22s infinite ease-in-out reverse; }
 
+    /* Glass panel */
     .form-panel {
         position: relative;
         background: rgba(20, 20, 22, 0.4);
@@ -59,23 +59,19 @@
     .form-panel-body { padding: 32px 36px; }
 
     /* Inputs: glass + gold focus */
-    .form-panel input,
-    .form-panel select,
-    .form-panel textarea {
+    .form-panel input:not([type="checkbox"]),
+    .form-panel select {
         background: rgba(255, 255, 255, 0.03) !important;
         border: 1px solid rgba(255, 255, 255, 0.08) !important;
         border-radius: 10px !important;
         transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease !important;
-        color: #ffffff !important;
     }
-    .form-panel input:hover,
-    .form-panel select:hover,
-    .form-panel textarea:hover {
+    .form-panel input:not([type="checkbox"]):hover,
+    .form-panel select:hover {
         border-color: rgba(255, 255, 255, 0.16) !important;
     }
-    .form-panel input:focus,
-    .form-panel select:focus,
-    .form-panel textarea:focus {
+    .form-panel input:not([type="checkbox"]):focus,
+    .form-panel select:focus {
         background: rgba(255, 255, 255, 0.05) !important;
         border-color: rgba(221, 167, 81, 0.55) !important;
         box-shadow: 0 0 0 3px rgba(221, 167, 81, 0.12) !important;
@@ -86,25 +82,22 @@
         cursor: pointer;
     }
 
-    .suggestion-btn {
-        font-size: 11px !important;
-        padding: 3px 10px !important;
-        border-radius: 20px !important;
-        background: var(--mm-glass-1) !important;
-        border: 1px solid var(--mm-border) !important;
-        color: var(--mm-text-secondary) !important;
-        cursor: pointer;
-        transition: background 0.12s, color 0.12s;
-        font-weight: 600 !important;
+    /* Active toggle row */
+    .active-toggle {
+        display: flex; align-items: center; gap: 12px;
+        margin-top: 8px; padding: 14px 18px;
+        background: rgba(255, 255, 255, 0.025);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        border-radius: 12px;
+        transition: border-color 0.25s ease, background 0.25s ease;
     }
-    .suggestion-btn:hover { background: var(--mm-glass-2) !important; color: var(--mm-text) !important; }
-
-    .intent-section {
-        background: var(--mm-glass-1);
-        border: 1px solid var(--mm-border);
-        border-radius: 10px;
-        padding: 20px;
-        margin-top: 8px;
+    .active-toggle:hover {
+        border-color: rgba(221, 167, 81, 0.3);
+        background: rgba(255, 255, 255, 0.04);
+    }
+    .active-toggle input[type="checkbox"] {
+        width: 18px; height: 18px; margin: 0; cursor: pointer;
+        accent-color: #DDA751;
     }
 
     /* Button overrides for premium feel */
@@ -135,99 +128,103 @@
     @media (max-width: 576px) {
         .form-panel-header, .form-panel-body { padding: 24px 20px; }
     }
+    @media (prefers-reduced-motion: reduce) {
+        .bg-glow-1, .bg-glow-2, .bg-arc-1, .bg-arc-2, .bg-arc-3, .form-panel { animation: none; }
+    }
 </style>
 
 <div class="mm-page" style="position: relative; z-index: 1; min-height: 80vh;">
     <!-- Cinematic Orbital Background -->
     <div style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; overflow: hidden; z-index: -1; pointer-events: none; background-color: #030405;">
-        <!-- Very large, extremely soft blue radial glow (left) -->
         <div class="bg-glow-1" style="position: absolute; top: 20%; left: -20%; width: 50vw; height: 50vw; border-radius: 50%; background: radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%); filter: blur(100px);"></div>
-        
-        <!-- Very large, extremely soft gold radial glow (upper/right) -->
         <div class="bg-glow-2" style="position: absolute; top: -10%; right: -20%; width: 60vw; height: 60vw; border-radius: 50%; background: radial-gradient(circle, rgba(212,175,55,0.07) 0%, transparent 70%); filter: blur(100px);"></div>
-
-        <!-- Glassy glowing curved/orbital arcs -->
-        <!-- Blue arc -->
         <div class="bg-arc-1" style="position: absolute; top: 10%; left: -30vw; width: 70vw; height: 70vw; border-radius: 50%; border: 1px solid rgba(59,130,246,0.4); box-shadow: inset 0 0 40px rgba(59,130,246,0.15), 0 0 60px rgba(59,130,246,0.2);"></div>
-        
-        <!-- Gold arc 1 -->
         <div class="bg-arc-2" style="position: absolute; top: -20vh; right: -10vw; width: 60vw; height: 60vw; border-radius: 50%; border: 1px solid rgba(212,175,55,0.4); box-shadow: inset 0 0 40px rgba(212,175,55,0.15), 0 0 60px rgba(212,175,55,0.2);"></div>
-        
-        <!-- Gold arc 2 (outer) -->
         <div class="bg-arc-3" style="position: absolute; top: -10vh; right: -20vw; width: 80vw; height: 80vw; border-radius: 50%; border: 1px solid rgba(212,175,55,0.2); box-shadow: inset 0 0 20px rgba(212,175,55,0.05), 0 0 30px rgba(212,175,55,0.1);"></div>
-
-        <!-- Subtle atmospheric bloom/noise depth -->
         <div style="position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, transparent 30%, rgba(3,4,5,0.8) 100%);"></div>
     </div>
 
-    <div style="max-width: 560px; margin: 0 auto; position: relative; z-index: 2;">
+    <div style="max-width: 620px; margin: 0 auto; position: relative; z-index: 2;">
         <nav aria-label="breadcrumb" class="mb-4">
             <ol class="breadcrumb" style="background: transparent; padding: 0;">
-                <li class="breadcrumb-item"><a href="{% url 'expense_list' %}" style="color: #a1a1aa; text-decoration: none; font-weight: 500;">Expenses</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'recurring_list' %}" style="color: #a1a1aa; text-decoration: none; font-weight: 500;">Recurring Money</a></li>
                 <li class="breadcrumb-item active" style="color: #ffffff; font-weight: 600;">{{ title }}</li>
             </ol>
         </nav>
 
-    <div class="form-panel">
-        <div class="form-panel-header">
-            <h2 style="font-size: 22px; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 4px;">{{ title }}</h2>
-            <p style="font-size: 13px; color: var(--mm-text-muted); margin: 0;">Simple by default, meaningful when expanded.</p>
+        <div class="form-panel">
+            <div class="form-panel-header">
+                <h2 style="font-size: 22px; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 4px;">{{ title }}</h2>
+                <p style="font-size: 13px; color: var(--mm-text-muted); margin: 0;">Manage your regular income or expenses.</p>
+            </div>
+            <div class="form-panel-body">
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="row g-3">
+                        <div class="col-sm-4 mm-field">
+                            <label class="mm-label" for="{{ form.transaction_type.id_for_label }}">Type</label>
+                            {{ form.transaction_type }}
+                            {% if form.transaction_type.errors %}<ul class="errorlist">{% for e in form.transaction_type.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                        </div>
+                        <div class="col-sm-4 mm-field">
+                            <label class="mm-label" for="{{ form.amount.id_for_label }}">Amount (₹)</label>
+                            {{ form.amount }}
+                            {% if form.amount.errors %}<ul class="errorlist">{% for e in form.amount.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                        </div>
+                        <div class="col-sm-4 mm-field">
+                            <label class="mm-label" for="{{ form.frequency.id_for_label }}">Frequency</label>
+                            {{ form.frequency }}
+                            {% if form.frequency.errors %}<ul class="errorlist">{% for e in form.frequency.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-sm-6 mm-field">
+                            <label class="mm-label" for="{{ form.description.id_for_label }}">Description</label>
+                            {{ form.description }}
+                            <div class="mm-helptext">e.g. Salary, Rent, Netflix</div>
+                            {% if form.description.errors %}<ul class="errorlist">{% for e in form.description.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                        </div>
+                        <div class="col-sm-6 mm-field">
+                            <label class="mm-label" for="{{ form.category.id_for_label }}">Category</label>
+                            {{ form.category }}
+                            <div class="mm-helptext">e.g. Subscriptions, Fixed Income</div>
+                            {% if form.category.errors %}<ul class="errorlist">{% for e in form.category.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-sm-4 mm-field">
+                            <label class="mm-label" for="{{ form.start_date.id_for_label }}">Start Date</label>
+                            {{ form.start_date }}
+                            {% if form.start_date.errors %}<ul class="errorlist">{% for e in form.start_date.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                        </div>
+                        <div class="col-sm-4 mm-field">
+                            <label class="mm-label" for="{{ form.next_expected_date.id_for_label }}">Next Expected</label>
+                            {{ form.next_expected_date }}
+                            {% if form.next_expected_date.errors %}<ul class="errorlist">{% for e in form.next_expected_date.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                        </div>
+                        <div class="col-sm-4 mm-field">
+                            <label class="mm-label" for="{{ form.end_date.id_for_label }}">End Date <span style="font-weight:400;text-transform:none;font-size:11px;color:var(--mm-text-muted);">— opt.</span></label>
+                            {{ form.end_date }}
+                            {% if form.end_date.errors %}<ul class="errorlist">{% for e in form.end_date.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mm-field active-toggle">
+                        {{ form.is_active }}
+                        <label for="{{ form.is_active.id_for_label }}" style="font-size:14px;font-weight:600;color:var(--mm-text);cursor:pointer;margin:0;">Active</label>
+                        <span style="font-size:12px;color:var(--mm-text-muted);">Uncheck to pause this record</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-5">
+                        <a href="{% url 'recurring_list' %}" class="mm-btn mm-btn-ghost">Cancel</a>
+                        <button type="submit" class="mm-btn mm-btn-primary">Save Record</button>
+                    </div>
+                </form>
+            </div>
         </div>
-        <div class="form-panel-body">
-            <form method="post">
-                {% csrf_token %}
-
-                <div class="mm-field">
-                    <label class="mm-label" for="{{ form.amount.id_for_label }}">Amount (₹)</label>
-                    {{ form.amount }}
-                    {% if form.amount.errors %}<ul class="errorlist">{% for e in form.amount.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
-                </div>
-
-                <div class="row g-3">
-                    <div class="col-sm-6 mm-field">
-                        <label class="mm-label" for="{{ form.category.id_for_label }}">Category</label>
-                        {{ form.category }}
-                        {% if form.category.errors %}<ul class="errorlist">{% for e in form.category.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
-                    </div>
-                    <div class="col-sm-6 mm-field">
-                        <label class="mm-label" for="{{ form.date.id_for_label }}">Date</label>
-                        {{ form.date }}
-                        {% if form.date.errors %}<ul class="errorlist">{% for e in form.date.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
-                    </div>
-                </div>
-
-                <div class="mm-field">
-                    <label class="mm-label" for="{{ form.description.id_for_label }}">Description <span style="font-weight: 400; text-transform: none; letter-spacing: 0; font-size: 11px; color: var(--mm-text-muted);">— optional</span></label>
-                    {{ form.description }}
-                    {% if form.description.errors %}<ul class="errorlist">{% for e in form.description.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
-                    {% if suggested_contexts %}
-                    <div style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
-                        <span style="font-size: 11px; color: var(--mm-text-muted); font-weight: 600;">Suggested:</span>
-                        {% for context in suggested_contexts %}
-                        <button type="button" class="suggestion-btn" onclick="var d = document.getElementById('{{ form.description.id_for_label }}'); d.value = d.value ? d.value + ' - ' + '{{ context }}' : '{{ context }}';">{{ context }}</button>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
-                </div>
-
-                <hr style="border-color: var(--mm-border); margin: 24px 0;">
-
-                <div class="intent-section">
-                    <label class="mm-label" for="{{ form.intent.id_for_label }}" style="margin-bottom: 4px;">
-                        Expense Intent
-                        <span style="font-size: 10px; font-weight: 500; text-transform: none; letter-spacing: 0; color: var(--mm-text-muted); margin-left: 8px;">Optional — helps build your Spending DNA</span>
-                    </label>
-                    {{ form.intent }}
-                    {% if form.intent.errors %}<ul class="errorlist">{% for e in form.intent.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
-                </div>
-
-                <div class="d-flex justify-content-between align-items-center mt-5">
-                    <a href="{% url 'expense_list' %}" class="mm-btn mm-btn-ghost">Cancel</a>
-                    <button type="submit" class="mm-btn mm-btn-primary">Save Expense</button>
-                </div>
-            </form>
-        </div>
-    </div>
     </div>
 </div>
 {% endblock %}

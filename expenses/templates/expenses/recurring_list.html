@@ -1,0 +1,285 @@
+{% extends 'expenses/base.html' %}
+{% block title %}Recurring Money — MoneyMitra{% endblock %}
+
+{% block content %}
+<style>
+    /* ── Background Animations ── */
+    @keyframes float-glow-1 {
+        0% { opacity: 0.4; transform: scale(1) translate(0, 0); }
+        50% { opacity: 1; transform: scale(1.15) translate(30px, -20px); }
+        100% { opacity: 0.4; transform: scale(1) translate(0, 0); }
+    }
+    @keyframes float-glow-2 {
+        0% { opacity: 0.4; transform: scale(1) translate(0, 0); }
+        50% { opacity: 1; transform: scale(1.2) translate(-30px, 20px); }
+        100% { opacity: 0.4; transform: scale(1) translate(0, 0); }
+    }
+    @keyframes float-arc-1 {
+        0% { opacity: 0.6; transform: scale(1) rotate(0deg) translate(0, 0); }
+        50% { opacity: 1; transform: scale(1.05) rotate(5deg) translate(20px, 15px); }
+        100% { opacity: 0.6; transform: scale(1) rotate(0deg) translate(0, 0); }
+    }
+    @keyframes float-arc-2 {
+        0% { opacity: 0.6; transform: scale(1) rotate(0deg) translate(0, 0); }
+        50% { opacity: 1; transform: scale(1.05) rotate(-5deg) translate(-25px, -15px); }
+        100% { opacity: 0.6; transform: scale(1) rotate(0deg) translate(0, 0); }
+    }
+    .bg-glow-1 { animation: float-glow-1 12s infinite ease-in-out; }
+    .bg-glow-2 { animation: float-glow-2 15s infinite ease-in-out; }
+    .bg-arc-1 { animation: float-arc-1 14s infinite ease-in-out; }
+    .bg-arc-2 { animation: float-arc-2 18s infinite ease-in-out; }
+    .bg-arc-3 { animation: float-arc-1 22s infinite ease-in-out reverse; }
+
+    /* ── Glass panel ── */
+    .rec-panel {
+        position: relative;
+        background: rgba(20, 20, 22, 0.4);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
+        border-left: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+        overflow: hidden;
+    }
+    .rec-panel::before {
+        content: ""; position: absolute; top: 0; left: 36px; right: 36px; height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(221,167,81,0.6), transparent);
+        z-index: 1;
+    }
+    .rec-panel-header { padding: 36px 36px 28px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .rec-title {
+        font-size: 32px; font-weight: 800; letter-spacing: -0.035em; margin-bottom: 6px;
+        background: linear-gradient(135deg, #ffffff 0%, #f3e3c3 55%, #DDA751 100%);
+        -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    }
+
+    .rec-section-label {
+        display: flex; align-items: center; gap: 12px;
+        font-size: 11px; font-weight: 700; text-transform: uppercase;
+        letter-spacing: 0.15em; color: #a1a1aa;
+        padding: 24px 36px 14px;
+    }
+    .rec-section-label::after {
+        content: ""; flex: 1; height: 1px;
+        background: linear-gradient(90deg, rgba(221,167,81,0.35), transparent);
+    }
+    .rec-section-label.income-label::before,
+    .rec-section-label.expense-label::before {
+        content: ""; width: 6px; height: 6px; border-radius: 50%;
+    }
+    .rec-section-label.income-label::before { background: var(--mm-green); box-shadow: 0 0 8px var(--mm-green); }
+    .rec-section-label.expense-label::before { background: var(--mm-red); box-shadow: 0 0 8px var(--mm-red); }
+
+    .rec-list { padding: 0 20px 12px; }
+    .rec-row {
+        position: relative;
+        display: flex; align-items: center; gap: 16px;
+        padding: 16px 16px;
+        margin-bottom: 8px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        transition: background 0.3s ease, border-color 0.3s ease, transform 0.3s cubic-bezier(0.2,0.8,0.2,1), box-shadow 0.3s ease;
+    }
+    .rec-row::before {
+        content: ""; position: absolute; left: 0; top: 14px; bottom: 14px; width: 2px;
+        border-radius: 2px; opacity: 0; transition: opacity 0.3s ease;
+    }
+    .rec-row.row-income::before { background: var(--mm-green); box-shadow: 0 0 8px var(--mm-green); }
+    .rec-row.row-expense::before { background: var(--mm-red); box-shadow: 0 0 8px var(--mm-red); }
+    .rec-row:hover {
+        background: rgba(255, 255, 255, 0.045);
+        border-color: rgba(221, 167, 81, 0.22);
+        transform: translateX(4px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    }
+    .rec-row:hover::before { opacity: 1; }
+    .rec-row.inactive { opacity: 0.45; }
+
+    .rec-name { font-size: 15px; font-weight: 600; margin-bottom: 6px; color: #fff; letter-spacing: -0.01em; }
+    .rec-mono { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--mm-text-muted); white-space: nowrap; }
+    .rec-freq {
+        font-family: 'IBM Plex Mono', monospace; font-size: 11px; white-space: nowrap;
+        padding: 3px 9px; border-radius: 8px;
+        background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+        color: #a1a1aa;
+    }
+    .rec-amount { font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 600; white-space: nowrap; }
+    .rec-amount.in { color: var(--mm-green); text-shadow: 0 0 14px rgba(34,197,94,0.3); }
+    .rec-amount.out { color: var(--mm-red); text-shadow: 0 0 14px rgba(255,69,58,0.3); }
+
+    .rec-badge {
+        display: inline-flex; align-items: center; padding: 3px 10px;
+        border-radius: 20px; font-size: 11px; font-weight: 600;
+        border: 1px solid;
+    }
+    .rec-badge-income { color: var(--mm-green); border-color: rgba(34,197,94,0.3); background: rgba(34,197,94,0.08); }
+    .rec-badge-expense { color: var(--mm-red); border-color: rgba(255,69,58,0.3); background: rgba(255,69,58,0.08); }
+    .rec-badge-inactive { color: var(--mm-text-muted); border-color: var(--mm-border); background: transparent; }
+
+    .rec-action {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 32px; height: 32px; border-radius: 9px;
+        background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+        text-decoration: none; color: var(--mm-text-muted); font-size: 11px;
+        transition: all 0.25s ease;
+    }
+    .rec-action:hover {
+        background: rgba(221,167,81,0.1); border-color: rgba(221,167,81,0.4); color: #DDA751;
+        transform: translateY(-2px);
+    }
+    .rec-action.del:hover { color: var(--mm-red); border-color: rgba(255,69,58,0.35); background: rgba(255,69,58,0.08); }
+
+    /* ── Buttons ── */
+    .mm-btn-primary {
+        background: linear-gradient(135deg, #DDA751 0%, #B67B29 100%) !important;
+        border: none !important;
+        color: #000000 !important;
+        font-weight: 600 !important;
+        box-shadow: 0 4px 16px rgba(221, 167, 81, 0.4) !important;
+        transition: all 0.3s ease !important;
+    }
+    .mm-btn-primary:hover {
+        box-shadow: 0 6px 20px rgba(221, 167, 81, 0.6) !important;
+        transform: translateY(-2px) !important;
+    }
+
+    /* ── Scroll reveal ── */
+    .reveal-item {
+        opacity: 0;
+        transform: translateY(24px);
+        transition: opacity 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .reveal-item.is-visible { opacity: 1; transform: none; }
+    .rec-row.reveal-item.is-visible:hover { transform: translateX(4px); }
+
+    @media (max-width: 768px) {
+        .rec-panel-header { padding: 28px 20px 22px; }
+        .rec-section-label { padding: 18px 20px 10px; }
+        .rec-list { padding: 0 12px 10px; }
+        .rec-row { padding: 14px; flex-wrap: wrap; }
+        .rec-title { font-size: 26px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .bg-glow-1, .bg-glow-2, .bg-arc-1, .bg-arc-2, .bg-arc-3 { animation: none; }
+        .reveal-item { opacity: 1; transform: none; transition: none; }
+    }
+</style>
+
+<div class="mm-page-wide" style="position: relative; z-index: 1; min-height: 80vh;">
+    <!-- Cinematic Orbital Background -->
+    <div style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; overflow: hidden; z-index: -1; pointer-events: none; background-color: #030405;">
+        <div class="bg-glow-1" style="position: absolute; top: 20%; left: -20%; width: 50vw; height: 50vw; border-radius: 50%; background: radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%); filter: blur(100px);"></div>
+        <div class="bg-glow-2" style="position: absolute; top: -10%; right: -20%; width: 60vw; height: 60vw; border-radius: 50%; background: radial-gradient(circle, rgba(212,175,55,0.07) 0%, transparent 70%); filter: blur(100px);"></div>
+        <div class="bg-arc-1" style="position: absolute; top: 10%; left: -30vw; width: 70vw; height: 70vw; border-radius: 50%; border: 1px solid rgba(59,130,246,0.4); box-shadow: inset 0 0 40px rgba(59,130,246,0.15), 0 0 60px rgba(59,130,246,0.2);"></div>
+        <div class="bg-arc-2" style="position: absolute; top: -20vh; right: -10vw; width: 60vw; height: 60vw; border-radius: 50%; border: 1px solid rgba(212,175,55,0.4); box-shadow: inset 0 0 40px rgba(212,175,55,0.15), 0 0 60px rgba(212,175,55,0.2);"></div>
+        <div class="bg-arc-3" style="position: absolute; top: -10vh; right: -20vw; width: 80vw; height: 80vw; border-radius: 50%; border: 1px solid rgba(212,175,55,0.2); box-shadow: inset 0 0 20px rgba(212,175,55,0.05), 0 0 30px rgba(212,175,55,0.1);"></div>
+        <div style="position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, transparent 30%, rgba(3,4,5,0.8) 100%);"></div>
+    </div>
+
+    <div class="rec-panel reveal-item">
+        <div class="rec-panel-header">
+            <nav aria-label="breadcrumb" style="margin-bottom: 16px;">
+                <ol class="breadcrumb" style="background: transparent; padding: 0;"><li class="breadcrumb-item active" style="color: #a1a1aa; font-weight: 500;">Recurring Money</li></ol>
+            </nav>
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+                <div>
+                    <h2 class="rec-title">Recurring Money</h2>
+                    <p style="font-size:14px;color:var(--mm-text-secondary);margin:0;">What money regularly comes in or goes out?</p>
+                </div>
+                <div class="mt-3 mt-md-0">
+                    <a href="{% url 'recurring_add' %}" class="mm-btn mm-btn-primary mm-btn-sm">+ Add Record</a>
+                </div>
+            </div>
+        </div>
+
+        {% if not has_recurring %}
+        <div class="mm-empty" style="padding: 80px 24px;">
+            <svg class="mm-empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+            <div class="mm-empty-title">No recurring records yet</div>
+            <div class="mm-empty-body">Track your salary, rent, subscriptions, and other regular money to plan ahead.</div>
+            <a href="{% url 'recurring_add' %}" class="mm-btn mm-btn-primary">Create your first record</a>
+        </div>
+        {% else %}
+
+        {% if incoming %}
+        <div class="rec-section-label income-label">Incoming</div>
+        <div class="rec-list">
+        {% for rec in incoming %}
+        <div class="rec-row row-income {% if not rec.is_active %}inactive{% endif %}">
+            <div style="flex:1; min-width: 0;">
+                <div class="rec-name">{{ rec.description }}</div>
+                <span class="rec-badge {% if rec.is_active %}rec-badge-income{% else %}rec-badge-inactive{% endif %}">{{ rec.category }}</span>
+            </div>
+            <div class="rec-freq">{{ rec.frequency }}</div>
+            <div class="rec-mono">{{ rec.next_expected_date|date:"d M Y" }}</div>
+            <div class="rec-amount in">+₹{{ rec.amount|floatformat:2 }}</div>
+            <div style="display:flex;gap:6px;flex-shrink:0;">
+                <a href="{% url 'recurring_edit' rec.pk %}" class="rec-action" title="Edit">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </a>
+                <a href="{% url 'recurring_delete' rec.pk %}" class="rec-action del" title="Delete">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if outgoing %}
+        <div class="rec-section-label expense-label">Outgoing</div>
+        <div class="rec-list">
+        {% for rec in outgoing %}
+        <div class="rec-row row-expense {% if not rec.is_active %}inactive{% endif %}">
+            <div style="flex:1; min-width: 0;">
+                <div class="rec-name">{{ rec.description }}</div>
+                <span class="rec-badge {% if rec.is_active %}rec-badge-expense{% else %}rec-badge-inactive{% endif %}">{{ rec.category }}</span>
+            </div>
+            <div class="rec-freq">{{ rec.frequency }}</div>
+            <div class="rec-mono">{{ rec.next_expected_date|date:"d M Y" }}</div>
+            <div class="rec-amount out">−₹{{ rec.amount|floatformat:2 }}</div>
+            <div style="display:flex;gap:6px;flex-shrink:0;">
+                <a href="{% url 'recurring_edit' rec.pk %}" class="rec-action" title="Edit">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </a>
+                <a href="{% url 'recurring_delete' rec.pk %}" class="rec-action del" title="Delete">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+        </div>
+        {% endif %}
+
+        {% endif %}
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Reveal on scroll (same as dashboard)
+    const panel = document.querySelector('.rec-panel');
+    const rows = document.querySelectorAll('.rec-row, .rec-section-label');
+    rows.forEach((el, i) => {
+        el.classList.add('reveal-item');
+        el.style.transitionDelay = (0.15 + (i % 6) * 0.06) + 's';
+    });
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+            } else {
+                entry.target.classList.remove('is-visible');
+            }
+        });
+    }, { root: null, rootMargin: '0px 0px -40px 0px', threshold: 0.1 });
+
+    if (panel) observer.observe(panel);
+    rows.forEach(el => observer.observe(el));
+});
+</script>
+{% endblock %}

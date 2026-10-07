@@ -167,6 +167,30 @@ def generate_spending_dna(user):
                 else:
                     monthly_trend = f"Your spending this month is exactly equal to your average of the previous {len(previous_months)} month(s)."
 
+    # 8. Intent Composition
+    intent_stats = expenses.values('intent').annotate(
+        total=Sum('amount'),
+        count=Count('id')
+    ).order_by('-total')
+    
+    intent_behavior = []
+    need_want_summary = {'Need': {'total': Decimal('0.00'), 'percentage': Decimal('0.0')}, 'Want': {'total': Decimal('0.00'), 'percentage': Decimal('0.0')}}
+    
+    for istat in intent_stats:
+        percentage = ((istat['total'] / total_spending) * Decimal('100')).quantize(Decimal('0.1')) if total_spending > 0 else Decimal('0.0')
+        intent_behavior.append({
+            'intent': istat['intent'] if istat['intent'] else 'Other',
+            'total': istat['total'],
+            'count': istat['count'],
+            'percentage': percentage
+        })
+        if istat['intent'] == 'Need':
+            need_want_summary['Need'] = {'total': istat['total'], 'percentage': percentage}
+        elif istat['intent'] == 'Want':
+            need_want_summary['Want'] = {'total': istat['total'], 'percentage': percentage}
+            
+    top_intent = intent_stats.first()
+            
     return {
         'summary': {
             'total_transactions': total_transactions,
@@ -176,12 +200,15 @@ def generate_spending_dna(user):
             'smallest_transaction': smallest_transaction,
             'most_frequent_category': most_frequent_cat,
             'highest_spending_category': highest_spending_cat,
+            'top_intent': top_intent,
             'categories_used': categories_used
         },
         'money_leak': money_leak,
         'repeated_spending': repeated_spending[:5], # limit to top 5
         'large_transaction': large_transaction,
         'category_behavior': category_behavior,
+        'intent_behavior': intent_behavior,
+        'need_want_summary': need_want_summary,
         'weekend_pattern': weekend_pattern,
         'monthly_pattern': monthly_pattern,
         'monthly_trend': monthly_trend

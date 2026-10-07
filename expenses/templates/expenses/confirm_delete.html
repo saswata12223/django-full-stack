@@ -1,25 +1,23 @@
 {% extends 'expenses/base.html' %}
+{% block title %}Confirm Delete — MoneyMitra{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center mt-5">
-    <div class="col-md-6">
-        <div class="card shadow-sm border-danger">
-            <div class="card-header bg-danger text-white">
-                <h4 class="mb-0 text-center">Confirm Delete</h4>
-            </div>
-            <div class="card-body p-4 text-center">
-                <p class="mb-4">Are you sure you want to delete this {{ type }} record?</p>
-                <div class="alert alert-light border shadow-sm">
-                    <strong>{{ object }}</strong>
+<div class="mm-page">
+    <div style="max-width: 480px; margin: 0 auto; background: var(--mm-glass-1); border: 1px solid rgba(255,69,58,0.2); border-radius: 16px; overflow: hidden;">
+        <div style="padding: 28px 32px 20px; border-bottom: 1px solid var(--mm-border);">
+            <h2 style="font-size: 20px; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 4px; color: var(--mm-text);">Confirm Delete</h2>
+            <p style="font-size: 13px; color: var(--mm-text-muted); margin: 0;">This action cannot be undone.</p>
+        </div>
+        <div style="padding: 28px 32px; text-align: center;">
+            <p style="font-size: 15px; color: var(--mm-text-secondary); margin-bottom: 20px;">Are you sure you want to delete this <strong style="color: var(--mm-text);">{{ type }}</strong> record?</p>
+            <div style="background: var(--mm-glass-1); border: 1px solid var(--mm-border); border-radius: 10px; padding: 14px 20px; margin-bottom: 28px; font-size: 14px; color: var(--mm-text); font-weight: 600;">{{ object }}</div>
+            <form method="post">
+                {% csrf_token %}
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="{% url cancel_url %}" class="mm-btn mm-btn-ghost">Cancel</a>
+                    <button type="submit" class="mm-btn mm-btn-danger">Delete</button>
                 </div>
-                <form method="post">
-                    {% csrf_token %}
-                    <div class="d-flex justify-content-center gap-3 mt-4">
-                        <a href="{% url cancel_url %}" class="btn btn-outline-secondary px-4">Cancel</a>
-                        <button type="submit" class="btn btn-danger px-4">Yes, Delete</button>
-                    </div>
-                </form>
-            </div>
+            </form>
         </div>
     </div>
 </div>

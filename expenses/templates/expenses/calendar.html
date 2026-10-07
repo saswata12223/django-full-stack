@@ -1,0 +1,238 @@
+{% extends 'expenses/base.html' %}
+{% load static %}
+{% block title %}Money Calendar — MoneyMitra{% endblock %}
+
+{% block content %}
+<style>
+    /* Background Animations */
+    @keyframes float-glow-1 {
+        0% { opacity: 0.4; transform: scale(1) translate(0, 0); }
+        50% { opacity: 1; transform: scale(1.15) translate(30px, -20px); }
+        100% { opacity: 0.4; transform: scale(1) translate(0, 0); }
+    }
+    @keyframes float-glow-2 {
+        0% { opacity: 0.4; transform: scale(1) translate(0, 0); }
+        50% { opacity: 1; transform: scale(1.2) translate(-30px, 20px); }
+        100% { opacity: 0.4; transform: scale(1) translate(0, 0); }
+    }
+    @keyframes float-arc-1 {
+        0% { opacity: 0.6; transform: scale(1) rotate(0deg) translate(0, 0); }
+        50% { opacity: 1; transform: scale(1.05) rotate(5deg) translate(20px, 15px); }
+        100% { opacity: 0.6; transform: scale(1) rotate(0deg) translate(0, 0); }
+    }
+    @keyframes float-arc-2 {
+        0% { opacity: 0.6; transform: scale(1) rotate(0deg) translate(0, 0); }
+        50% { opacity: 1; transform: scale(1.05) rotate(-5deg) translate(-25px, -15px); }
+        100% { opacity: 0.6; transform: scale(1) rotate(0deg) translate(0, 0); }
+    }
+    
+    .bg-glow-1 { animation: float-glow-1 12s infinite ease-in-out; }
+    .bg-glow-2 { animation: float-glow-2 15s infinite ease-in-out; }
+    .bg-arc-1 { animation: float-arc-1 14s infinite ease-in-out; }
+    .bg-arc-2 { animation: float-arc-2 18s infinite ease-in-out; }
+    .bg-arc-3 { animation: float-arc-1 22s infinite ease-in-out reverse; }
+
+    /* Glass Panel */
+    .cal-panel {
+        position: relative;
+        background: rgba(20, 20, 22, 0.4);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
+        border-left: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+        overflow: hidden;
+        animation: panel-in 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    }
+    .cal-panel::before {
+        content: ""; position: absolute; top: 0; left: 36px; right: 36px; height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(221,167,81,0.6), transparent);
+        z-index: 1;
+    }
+    @keyframes panel-in {
+        from { opacity: 0; transform: translateY(24px); }
+        to { opacity: 1; transform: none; }
+    }
+
+    .cal-header { padding: 36px 36px 28px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .cal-body { padding: 36px; }
+
+    .cal-title {
+        font-size: 32px; font-weight: 800; letter-spacing: -0.035em; margin-bottom: 6px;
+        background: linear-gradient(135deg, #ffffff 0%, #f3e3c3 55%, #DDA751 100%);
+        -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    }
+
+    /* Event row styling (matches premium rec-row) */
+    .event-item {
+        position: relative;
+        display: flex; justify-content: space-between; align-items: center;
+        border-radius: 14px;
+        padding: 16px 20px;
+        margin-bottom: 8px;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        transition: background 0.3s ease, border-color 0.3s ease, transform 0.3s cubic-bezier(0.2,0.8,0.2,1), box-shadow 0.3s ease;
+    }
+    .event-item::before {
+        content: ""; position: absolute; left: 0; top: 14px; bottom: 14px; width: 2px;
+        border-radius: 2px; opacity: 0; transition: opacity 0.3s ease;
+    }
+    
+    .event-item:hover { 
+        background: rgba(255, 255, 255, 0.045);
+        border-color: rgba(221, 167, 81, 0.22);
+        transform: translateX(4px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    }
+    .event-item:hover::before { opacity: 1; }
+
+    .event-item.event-income::before { background: var(--mm-green); box-shadow: 0 0 8px var(--mm-green); }
+    .event-item.event-expense::before { background: var(--mm-red); box-shadow: 0 0 8px var(--mm-red); }
+    .event-item.event-expected-income::before { background: rgba(34,197,94,0.6); box-shadow: 0 0 8px rgba(34,197,94,0.4); }
+    .event-item.event-expected-expense::before { background: rgba(255,69,58,0.6); box-shadow: 0 0 8px rgba(255,69,58,0.4); }
+
+    .text-income { color: var(--mm-green); }
+    .text-expense { color: var(--mm-red); }
+    .amt-in { text-shadow: 0 0 14px rgba(34,197,94,0.3); }
+    .amt-out { text-shadow: 0 0 14px rgba(255,69,58,0.3); }
+
+    .date-group { margin-bottom: 32px; }
+    .date-label {
+        display: flex; align-items: center; gap: 12px;
+        font-size: 11px; font-weight: 700; text-transform: uppercase;
+        letter-spacing: 0.15em; color: #a1a1aa;
+        margin-bottom: 16px;
+        padding-left: 4px;
+    }
+    .date-label::after {
+        content: ""; flex: 1; height: 1px;
+        background: linear-gradient(90deg, rgba(221,167,81,0.2), transparent);
+    }
+
+    /* Scroll reveal */
+    .reveal-item {
+        opacity: 0;
+        transform: translateY(24px);
+        transition: opacity 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+    .reveal-item.is-visible { opacity: 1; transform: none; }
+    .event-item.reveal-item.is-visible:hover { transform: translateX(4px); }
+
+    /* Button overrides for premium feel */
+    .mm-btn-ghost {
+        background: rgba(255, 255, 255, 0.03) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        color: #ffffff !important;
+        transition: all 0.3s ease !important;
+    }
+    .mm-btn-ghost:hover {
+        background: rgba(255, 255, 255, 0.06) !important;
+        border-color: rgba(221, 167, 81, 0.4) !important;
+        color: #DDA751 !important;
+    }
+
+    @media (max-width: 768px) {
+        .cal-header, .cal-body { padding: 24px 20px; }
+        .cal-title { font-size: 26px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .bg-glow-1, .bg-glow-2, .bg-arc-1, .bg-arc-2, .bg-arc-3 { animation: none; }
+        .reveal-item { opacity: 1; transform: none; transition: none; }
+    }
+</style>
+
+<div class="mm-page-wide" style="position: relative; z-index: 1; min-height: 80vh;">
+    <!-- Cinematic Orbital Background -->
+    <div style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; overflow: hidden; z-index: -1; pointer-events: none; background-color: #030405;">
+        <div class="bg-glow-1" style="position: absolute; top: 20%; left: -20%; width: 50vw; height: 50vw; border-radius: 50%; background: radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%); filter: blur(100px);"></div>
+        <div class="bg-glow-2" style="position: absolute; top: -10%; right: -20%; width: 60vw; height: 60vw; border-radius: 50%; background: radial-gradient(circle, rgba(212,175,55,0.07) 0%, transparent 70%); filter: blur(100px);"></div>
+        <div class="bg-arc-1" style="position: absolute; top: 10%; left: -30vw; width: 70vw; height: 70vw; border-radius: 50%; border: 1px solid rgba(59,130,246,0.4); box-shadow: inset 0 0 40px rgba(59,130,246,0.15), 0 0 60px rgba(59,130,246,0.2);"></div>
+        <div class="bg-arc-2" style="position: absolute; top: -20vh; right: -10vw; width: 60vw; height: 60vw; border-radius: 50%; border: 1px solid rgba(212,175,55,0.4); box-shadow: inset 0 0 40px rgba(212,175,55,0.15), 0 0 60px rgba(212,175,55,0.2);"></div>
+        <div class="bg-arc-3" style="position: absolute; top: -10vh; right: -20vw; width: 80vw; height: 80vw; border-radius: 50%; border: 1px solid rgba(212,175,55,0.2); box-shadow: inset 0 0 20px rgba(212,175,55,0.05), 0 0 30px rgba(212,175,55,0.1);"></div>
+        <div style="position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, transparent 30%, rgba(3,4,5,0.8) 100%);"></div>
+    </div>
+    
+    <div style="position: relative; z-index: 2;">
+        <div class="cal-panel">
+        <div class="cal-header">
+            <nav aria-label="breadcrumb" style="margin-bottom:16px;">
+                <ol class="breadcrumb" style="background: transparent; padding: 0;"><li class="breadcrumb-item active" style="color: #a1a1aa; font-weight: 500;">Calendar</li></ol>
+            </nav>
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+                <div>
+                    <h2 class="cal-title">Money Calendar</h2>
+                    <p style="font-size:14px;color:var(--mm-text-secondary);margin:0;">View your actual history and expected future transactions.</p>
+                </div>
+                <div class="d-flex gap-2 mt-3 mt-md-0 align-items-center">
+                    <a href="{% url 'calendar' %}?month={{ prev_month.month }}&year={{ prev_month.year }}" class="mm-btn mm-btn-ghost mm-btn-sm">← Prev</a>
+                    <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:#fff;padding:6px 14px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;white-space:nowrap;">
+                        {{ current_date|date:"F Y" }}
+                    </span>
+                    <a href="{% url 'calendar' %}?month={{ next_month.month }}&year={{ next_month.year }}" class="mm-btn mm-btn-ghost mm-btn-sm">Next →</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="cal-body">
+            {% if not events %}
+            <div class="mm-empty reveal-item">
+                <svg class="mm-empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                <div class="mm-empty-title">No activity this month</div>
+                <div class="mm-empty-body">No actual or expected transactions in this time period.</div>
+            </div>
+            {% else %}
+            {% regroup events by date as events_by_date %}
+            {% for date_group in events_by_date %}
+            <div class="date-group reveal-item">
+                <div class="date-label">{{ date_group.grouper|date:"l, d F Y" }}</div>
+                {% for event in date_group.list %}
+                <div class="event-item event-{{ event.event_class }} reveal-item">
+                    <div>
+                        <div style="font-size:15px;font-weight:600;color:#fff;margin-bottom:4px;letter-spacing:-0.01em;">{{ event.description }}</div>
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <span class="{% if event.type == 'Income' %}text-income{% else %}text-expense{% endif %}" style="font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;">{{ event.type }}</span>
+                            {% if event.is_expected %}
+                            <span style="font-size:10px;font-weight:700;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);padding:2px 8px;border-radius:12px;color:var(--mm-text-muted);letter-spacing:0.06em;text-transform:uppercase;">Expected</span>
+                            {% else %}
+                            <span style="font-size:10px;font-weight:700;background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);padding:2px 8px;border-radius:12px;color:var(--mm-green);letter-spacing:0.06em;text-transform:uppercase;">Actual</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="{% if event.type == 'Income' %}text-income amt-in{% else %}text-expense amt-out{% endif %}" style="font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;margin-left:16px;white-space:nowrap;">
+                        {% if event.type == 'Income' %}+{% else %}−{% endif %}₹{{ event.amount|floatformat:2 }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Reveal animations on scroll
+    const rows = document.querySelectorAll('.reveal-item');
+    rows.forEach((el, i) => {
+        el.style.transitionDelay = (0.05 + (i % 10) * 0.05) + 's';
+    });
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+            } else {
+                entry.target.classList.remove('is-visible');
+            }
+        });
+    }, { root: null, rootMargin: '0px 0px -40px 0px', threshold: 0.1 });
+
+    rows.forEach(el => observer.observe(el));
+});
+</script>
+{% endblock %}

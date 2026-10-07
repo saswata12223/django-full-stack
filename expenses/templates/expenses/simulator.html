@@ -1,0 +1,340 @@
+{% extends 'expenses/base.html' %}
+{% block title %}Money Simulator — MoneyMitra{% endblock %}
+
+{% block content %}
+<style>
+    /* ── Background Animations ── */
+    @keyframes float-glow-1 {
+        0% { opacity: 0.4; transform: scale(1) translate(0, 0); }
+        50% { opacity: 1; transform: scale(1.15) translate(30px, -20px); }
+        100% { opacity: 0.4; transform: scale(1) translate(0, 0); }
+    }
+    @keyframes float-glow-2 {
+        0% { opacity: 0.4; transform: scale(1) translate(0, 0); }
+        50% { opacity: 1; transform: scale(1.2) translate(-30px, 20px); }
+        100% { opacity: 0.4; transform: scale(1) translate(0, 0); }
+    }
+    @keyframes float-arc-1 {
+        0% { opacity: 0.6; transform: scale(1) rotate(0deg) translate(0, 0); }
+        50% { opacity: 1; transform: scale(1.05) rotate(5deg) translate(20px, 15px); }
+        100% { opacity: 0.6; transform: scale(1) rotate(0deg) translate(0, 0); }
+    }
+    @keyframes float-arc-2 {
+        0% { opacity: 0.6; transform: scale(1) rotate(0deg) translate(0, 0); }
+        50% { opacity: 1; transform: scale(1.05) rotate(-5deg) translate(-25px, -15px); }
+        100% { opacity: 0.6; transform: scale(1) rotate(0deg) translate(0, 0); }
+    }
+    .bg-glow-1 { animation: float-glow-1 12s infinite ease-in-out; }
+    .bg-glow-2 { animation: float-glow-2 15s infinite ease-in-out; }
+    .bg-arc-1 { animation: float-arc-1 14s infinite ease-in-out; }
+    .bg-arc-2 { animation: float-arc-2 18s infinite ease-in-out; }
+    .bg-arc-3 { animation: float-arc-1 22s infinite ease-in-out reverse; }
+
+    /* ── Hero ── */
+    .sim-title {
+        font-size: 38px; font-weight: 800; letter-spacing: -0.04em; line-height: 1.1;
+        background: linear-gradient(135deg, #ffffff 0%, #f3e3c3 55%, #DDA751 100%);
+        -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    @media (max-width: 768px) { .sim-title { font-size: 28px; } }
+
+    /* ── Glass panels ── */
+    .sim-panel {
+        position: relative;
+        background: rgba(20, 20, 22, 0.4);
+        backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-top: 1px solid rgba(255,255,255,0.12);
+        border-radius: 20px;
+        box-shadow: 0 16px 48px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(255,255,255,0.04);
+        overflow: visible;
+    }
+    .sim-panel::before {
+        content: ""; position: absolute; top: 0; left: 24px; right: 24px; height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(221,167,81,0.55), transparent);
+        z-index: 1; pointer-events: none;
+    }
+    .sim-panel-header {
+        padding: 24px 28px; border-bottom: 1px solid rgba(255,255,255,0.06);
+        display: flex; justify-content: space-between; align-items: center;
+    }
+    .sim-panel-label {
+        font-size: 11px; font-weight: 700; text-transform: uppercase;
+        letter-spacing: 0.12em; color: #a1a1aa;
+    }
+    .sim-panel-body { padding: 28px; }
+
+    /* ── Inputs ── */
+    .sim-panel input,
+    .sim-panel select {
+        background: rgba(255,255,255,0.03) !important;
+        border: 1px solid rgba(255,255,255,0.08) !important;
+        border-radius: 10px !important;
+        color: #fff !important;
+        transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease !important;
+    }
+    .sim-panel input:hover,
+    .sim-panel select:hover { border-color: rgba(255,255,255,0.16) !important; }
+    .sim-panel input:focus,
+    .sim-panel select:focus {
+        background: rgba(255,255,255,0.05) !important;
+        border-color: rgba(221,167,81,0.55) !important;
+        box-shadow: 0 0 0 3px rgba(221,167,81,0.12) !important;
+        outline: none !important;
+    }
+
+    /* ── Horizon tag ── */
+    .sim-horizon-tag {
+        font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #DDA751;
+        background: rgba(221,167,81,0.08); border: 1px solid rgba(221,167,81,0.25);
+        padding: 4px 12px; border-radius: 20px; font-weight: 600;
+    }
+
+    /* ── Metric split ── */
+    .sim-metric-grid {
+        display: grid; grid-template-columns: 1fr 1fr; gap: 1px;
+        background: rgba(255,255,255,0.06); border-radius: 16px; overflow: hidden;
+        margin-bottom: 24px;
+    }
+    .sim-metric-cell {
+        background: rgba(15,15,18,0.6);
+        backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+        padding: 22px 24px;
+        transition: background 0.3s ease;
+    }
+    .sim-metric-cell:hover { background: rgba(25,25,30,0.7); }
+    .sim-metric-cell-label {
+        font-size: 10px; font-weight: 700; text-transform: uppercase;
+        letter-spacing: 0.1em; margin-bottom: 10px;
+    }
+    .sim-metric-cell-value {
+        font-family: 'IBM Plex Mono', monospace; font-size: 24px; font-weight: 600;
+        letter-spacing: -0.03em;
+    }
+    .sim-metric-cell-sub { font-size: 11px; color: var(--mm-text-muted); margin-top: 6px; }
+
+    /* ── Difference strip ── */
+    .sim-diff-strip {
+        padding: 16px 20px;
+        background: rgba(255,255,255,0.025);
+        border: 1px dashed rgba(221,167,81,0.3);
+        border-radius: 14px;
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 28px;
+        transition: border-color 0.3s ease, background 0.3s ease;
+    }
+    .sim-diff-strip:hover {
+        border-color: rgba(221,167,81,0.5);
+        background: rgba(221,167,81,0.03);
+    }
+
+    /* ── Timeline table ── */
+    .sim-section-label {
+        display: flex; align-items: center; gap: 12px;
+        font-size: 11px; font-weight: 700; text-transform: uppercase;
+        letter-spacing: 0.15em; color: #a1a1aa; margin-bottom: 16px;
+    }
+    .sim-section-label::after {
+        content: ""; flex: 1; height: 1px;
+        background: linear-gradient(90deg, rgba(221,167,81,0.35), transparent);
+    }
+    .sim-table { width: 100%; border-collapse: collapse; }
+    .sim-table th {
+        font-size: 10px; font-weight: 700; text-transform: uppercase;
+        letter-spacing: 0.1em; color: #a1a1aa;
+        padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .sim-table td { padding: 14px 0; }
+    .sim-table tbody tr {
+        border-bottom: 1px solid rgba(255,255,255,0.04);
+        transition: background 0.25s ease;
+    }
+    .sim-table tbody tr:last-child { border-bottom: none; }
+    .sim-table tbody tr:hover { background: rgba(255,255,255,0.025); }
+
+    /* ── Note ── */
+    .sim-note {
+        margin-top: 20px; padding: 16px 22px;
+        background: rgba(255,255,255,0.025);
+        backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255,255,255,0.07);
+        border-radius: 14px;
+        font-size: 12px; color: var(--mm-text-muted); line-height: 1.6;
+    }
+
+    /* ── Buttons ── */
+    .mm-btn-primary {
+        background: linear-gradient(135deg, #DDA751 0%, #B67B29 100%) !important;
+        border: none !important; color: #000 !important; font-weight: 600 !important;
+        box-shadow: 0 4px 16px rgba(221,167,81,0.4) !important;
+        transition: all 0.3s ease !important;
+    }
+    .mm-btn-primary:hover {
+        box-shadow: 0 6px 20px rgba(221,167,81,0.6) !important;
+        transform: translateY(-2px) !important;
+    }
+
+    /* ── Scroll reveal ── */
+    .reveal-item {
+        opacity: 0; transform: translateY(28px);
+        transition: opacity 0.8s cubic-bezier(0.2,0.8,0.2,1), transform 0.8s cubic-bezier(0.2,0.8,0.2,1);
+    }
+    .reveal-item.is-visible { opacity: 1; transform: none; }
+
+    @media (max-width: 992px) {
+        .sim-metric-grid { grid-template-columns: 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .bg-glow-1, .bg-glow-2, .bg-arc-1, .bg-arc-2, .bg-arc-3 { animation: none; }
+        .reveal-item { opacity: 1; transform: none; transition: none; }
+    }
+</style>
+
+<div class="mm-page" style="position: relative; z-index: 1; min-height: 80vh;">
+    <!-- Cinematic Orbital Background -->
+    <div style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; overflow: hidden; z-index: -1; pointer-events: none; background-color: #030405;">
+        <div class="bg-glow-1" style="position: absolute; top: 20%; left: -20%; width: 50vw; height: 50vw; border-radius: 50%; background: radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%); filter: blur(100px);"></div>
+        <div class="bg-glow-2" style="position: absolute; top: -10%; right: -20%; width: 60vw; height: 60vw; border-radius: 50%; background: radial-gradient(circle, rgba(212,175,55,0.08) 0%, transparent 70%); filter: blur(100px);"></div>
+        <div class="bg-arc-1" style="position: absolute; top: 10%; left: -30vw; width: 70vw; height: 70vw; border-radius: 50%; border: 1px solid rgba(59,130,246,0.4); box-shadow: inset 0 0 40px rgba(59,130,246,0.15), 0 0 60px rgba(59,130,246,0.2);"></div>
+        <div class="bg-arc-2" style="position: absolute; top: -20vh; right: -10vw; width: 60vw; height: 60vw; border-radius: 50%; border: 1px solid rgba(212,175,55,0.4); box-shadow: inset 0 0 40px rgba(212,175,55,0.15), 0 0 60px rgba(212,175,55,0.2);"></div>
+        <div class="bg-arc-3" style="position: absolute; top: -10vh; right: -20vw; width: 80vw; height: 80vw; border-radius: 50%; border: 1px solid rgba(212,175,55,0.2); box-shadow: inset 0 0 20px rgba(212,175,55,0.05), 0 0 30px rgba(212,175,55,0.1);"></div>
+        <div style="position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, transparent 30%, rgba(3,4,5,0.8) 100%);"></div>
+    </div>
+
+    <!-- Hero -->
+    <div class="mm-page-header" style="position: relative; z-index: 2; margin-bottom: 36px;">
+        <div class="mm-page-eyebrow">Simulate</div>
+        <h1 class="sim-title">Money Simulator</h1>
+        <p class="mm-page-subtitle">What happens to your money if you change one or more assumptions?</p>
+    </div>
+
+    <div class="row g-4" style="position: relative; z-index: 2;">
+        <!-- Inputs Panel -->
+        <div class="col-lg-5">
+            <div class="sim-panel reveal-item" style="position:sticky;top:80px;">
+                <div class="sim-panel-header">
+                    <div class="sim-panel-label">Scenario Inputs</div>
+                </div>
+                <div class="sim-panel-body">
+                    <form method="post" action="{% url 'simulator' %}">
+                        {% csrf_token %}
+
+                        <div class="mm-field">
+                            <label class="mm-label" for="id_horizon_days">Forecast Horizon</label>
+                            <select name="horizon_days" id="id_horizon_days" class="form-select">
+                                <option value="30" {% if horizon_days == 30 %}selected{% endif %}>30 Days</option>
+                                <option value="60" {% if horizon_days == 60 %}selected{% endif %}>60 Days</option>
+                                <option value="90" {% if horizon_days == 90 %}selected{% endif %}>90 Days</option>
+                            </select>
+                        </div>
+
+                        <div class="mm-field">
+                            <label class="mm-label" for="id_monthly_income_adj">Monthly Income Adjustment (₹)</label>
+                            <input type="number" step="0.01" name="monthly_income_adj" id="id_monthly_income_adj" class="form-control" value="{{ monthly_income_adj|default:'0.00' }}" placeholder="e.g. 10000">
+                            <div class="mm-helptext">Simulate adding to or reducing your expected monthly income.</div>
+                        </div>
+
+                        <div class="mm-field">
+                            <label class="mm-label" for="id_monthly_expense_adj">Monthly Expense Adjustment (₹)</label>
+                            <input type="number" step="0.01" name="monthly_expense_adj" id="id_monthly_expense_adj" class="form-control" value="{{ monthly_expense_adj|default:'0.00' }}" placeholder="e.g. 5000">
+                            <div class="mm-helptext">Simulate reducing or increasing your overall expected monthly expenses.</div>
+                        </div>
+
+                        <div class="mm-field">
+                            <label class="mm-label">Category-Specific Adjustment (₹)</label>
+                            <div style="display:flex;gap:8px;">
+                                <select name="cat_adj_category" class="form-select" style="flex:1;">
+                                    <option value="">Select Category</option>
+                                    {% for val, label in categories %}
+                                    <option value="{{ val }}" {% if cat_adj_category == val %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                                <input type="number" step="0.01" name="cat_adj_amount" class="form-control" value="{{ cat_adj_amount|default:'0.00' }}" placeholder="Amount" style="max-width:120px;">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="mm-btn mm-btn-primary" style="width:100%;justify-content:center;margin-top:8px;">Run Simulation</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Panel -->
+        <div class="col-lg-7">
+            <div class="sim-panel reveal-item">
+                <div class="sim-panel-header">
+                    <div class="sim-panel-label">Results</div>
+                    <span class="sim-horizon-tag">{{ horizon_days }}-Day Projection</span>
+                </div>
+                <div class="sim-panel-body">
+                    <!-- Baseline vs Scenario -->
+                    <div class="sim-metric-grid">
+                        <div class="sim-metric-cell">
+                            <div class="sim-metric-cell-label" style="color:#a1a1aa;">Baseline Balance</div>
+                            <div class="sim-metric-cell-value" style="color:#fff;">₹{{ baseline_balance }}</div>
+                            <div class="sim-metric-cell-sub">Without changes</div>
+                        </div>
+                        <div class="sim-metric-cell">
+                            <div class="sim-metric-cell-label" style="color:#DDA751;">Scenario Balance</div>
+                            <div class="sim-metric-cell-value" style="color:#DDA751;text-shadow:0 0 16px rgba(221,167,81,0.35);">₹{{ scenario_balance }}</div>
+                            <div class="sim-metric-cell-sub">If scenario applied</div>
+                        </div>
+                    </div>
+
+                    <!-- Difference -->
+                    <div class="sim-diff-strip">
+                        <span style="font-size:13px;font-weight:600;color:var(--mm-text-secondary);">Scenario Difference</span>
+                        <span style="font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;color:{% if scenario_diff >= 0 %}var(--mm-green){% else %}var(--mm-red){% endif %};{% if scenario_diff >= 0 %}text-shadow:0 0 14px rgba(34,197,94,0.3){% else %}text-shadow:0 0 14px rgba(255,69,58,0.3){% endif %};">
+                            {% if scenario_diff > 0 %}+{% endif %}₹{{ scenario_diff }}
+                        </span>
+                    </div>
+
+                    <!-- Date-Based Projection -->
+                    <div class="sim-section-label">Date-Based Projection</div>
+                    <table class="sim-table">
+                        <thead>
+                            <tr>
+                                <th style="text-align:left;">Date</th>
+                                <th style="text-align:right;">Baseline</th>
+                                <th style="text-align:right;">Scenario</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in timeline_summary %}
+                            <tr>
+                                <td style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--mm-text-muted);">{{ row.date|date:"d M Y" }}</td>
+                                <td style="text-align:right;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--mm-text-secondary);">₹{{ row.baseline }}</td>
+                                <td style="text-align:right;font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;color:#DDA751;">₹{{ row.scenario }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="sim-note reveal-item">
+                This simulator provides hypothetical projections based on your recorded money activity. It does not modify your real financial data or goals.
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const revealElements = document.querySelectorAll('.reveal-item');
+    revealElements.forEach((el, i) => {
+        el.style.transitionDelay = (i * 0.15) + 's';
+    });
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+            } else {
+                entry.target.classList.remove('is-visible');
+            }
+        });
+    }, { root: null, rootMargin: '0px 0px -40px 0px', threshold: 0.1 });
+    revealElements.forEach(el => observer.observe(el));
+});
+</script>
+{% endblock %}
